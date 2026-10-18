@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Станція «Пітон-1» — перші кроки в Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --space: #173A2C;
+  --space-2: #1F4A39;
+  --ink: #22302A;
+  --ink-soft: #55675D;
+  --leaf: #2F7D5A;
+  --leaf-soft: #D6EADE;
+  --mint: #EAF4EE;
+  --paper: #FFFFFF;
+  --line: #C9D8CF;
+  --amber: #E0A526;
+  --amber-ink: #6B4A00;
+  --amber-soft: #FBF0D3;
+  --code: #1E2923;
+  --code-2: #26342D;
+  --code-ink: #E8EFEA;
+  --code-mute: #8FA89A;
+  --c-kw: #F3D56B;
+  --c-str: #A9D98C;
+  --c-num: #8EC9F2;
+  --c-err: #FF9F8E;
+  --bad: #B3402E;
+  --bad-soft: #FBE3DE;
+  --good: #2F7D5A;
+  --page: var(--mint);
+  --panel: var(--paper);
+  --serif: "PT Serif", Cambria, Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", Calibri, "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #10201A; --panel: #172A22; --ink: #E3ECE6; --ink-soft: #A3B6AB; --line: #2E463B;
+    --leaf-soft: #1E3A2E; --amber-soft: #3A3018; --amber-ink: #F3D56B; --bad-soft: #3D2320; --bad: #FF9F8E; --good: #7FCFA2; --mint: #10201A;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #10201A; --panel: #172A22; --ink: #E3ECE6; --ink-soft: #A3B6AB; --line: #2E463B;
+  --leaf-soft: #1E3A2E; --amber-soft: #3A3018; --amber-ink: #F3D56B; --bad-soft: #3D2320; --bad: #FF9F8E; --good: #7FCFA2; --mint: #10201A;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.2; margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; border-radius: 6px; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+p { margin: 0 0 .8em; }
+a { color: var(--leaf); }
+[hidden] { display: none !important; }
+
+/* ---------- верхня панель ---------- */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--space); color: #E8EFEA; }
+.topbar-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 18px; padding: 10px 20px; }
+.brand { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 4px; color: inherit; text-decoration: none; }
+.brand svg { flex: none; }
+.brand b { font-family: var(--serif); font-size: 20px; letter-spacing: .01em; }
+.brand small { display: block; font-size: 12px; color: #A9C2B5; line-height: 1.1; }
+.meter { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 14px; }
+.cells { display: flex; gap: 3px; }
+.cells i { width: 10px; height: 16px; border-radius: 2px; background: #2E4D3F; display: block; }
+.cells i.on { background: var(--amber); }
+.stars-total { color: var(--c-kw); white-space: nowrap; }
+.tb-btn { text-decoration: none; background: transparent; border: 1px solid #3F6352; color: #E8EFEA; padding: 7px 14px; border-radius: 999px; font-size: 14px; white-space: nowrap; }
+.tb-btn:hover { background: #24503E; }
+.tb-btn.primary { background: var(--amber); border-color: var(--amber); color: #2A1E00; font-weight: 600; }
+.tb-btn.primary:hover { background: #F0B83A; }
+.pt-short, .tb-short { display: none; }
+@media (max-width: 760px) {
+  .brand small, .cells { display: none; }
+  .pt-long, .tb-long { display: none; }
+  .pt-short, .tb-short { display: inline; }
+  .meter { gap: 8px; }
+  .topbar-in { gap: 8px; padding: 8px 12px; }
+  .tb-btn { padding: 6px 10px; }
+}
+
+main { max-width: 1240px; margin: 0 auto; padding: 20px 20px 60px; }
+
+/* ---------- станція ---------- */
+.hero { background: var(--space); color: #E8EFEA; border-radius: 22px; padding: 22px 22px 14px; position: relative; overflow: hidden; }
+.hero-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px 24px; margin-bottom: 6px; }
+.hero h1 { font-size: clamp(26px, 3.4vw, 40px); }
+.hero .status { color: #A9C2B5; font-size: 15px; max-width: 46ch; }
+.station { width: 100%; height: auto; display: block; }
+.station .mod { cursor: pointer; }
+.station .mod.locked { cursor: not-allowed; }
+.station .mod:focus { outline: none; }
+.station .mod:focus-visible .hull { stroke: var(--amber); stroke-width: 4; }
+.station .hull { transition: fill .6s, stroke .6s; }
+.station .mod.next .hull { stroke: var(--amber); stroke-width: 3; }
+.station .mod.next .beacon { animation: beacon 1.6s ease-in-out infinite; }
+@keyframes beacon { 50% { opacity: .15; } }
+.station .mod.just-lit .glow { animation: lightup 1.8s ease-out 1; }
+@keyframes lightup { 0% { opacity: 0; } 30% { opacity: .9; } 100% { opacity: .35; } }
+.station .lbl { font-family: var(--sans); font-size: 15px; fill: #E8EFEA; }
+.station .num { font-family: var(--serif); font-size: 22px; font-weight: 700; }
+@media (max-width: 760px) { .station .lbl { display: none; } .station .num { font-size: 30px; } }
+
+/* вступ */
+.intro { position: absolute; inset: 0; background: rgba(15, 38, 29, .93); display: grid; place-items: center; padding: 20px; z-index: 2; }
+.intro-card { max-width: 560px; }
+.intro-card h2 { font-size: clamp(24px, 3vw, 34px); margin-bottom: 12px; }
+.intro-card p { color: #CFE0D6; font-size: 17px; line-height: 1.6; }
+.intro-form { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.intro-form label { width: 100%; font-size: 14px; color: #A9C2B5; }
+.intro-form input { flex: 1 1 220px; font: 17px var(--sans); padding: 11px 14px; border-radius: 10px; border: 1px solid #4A6E5D; background: #0F261D; color: #fff; }
+@media (max-width: 560px) { .hero { padding: 16px 12px 10px; } .intro { position: relative; inset: auto; margin: -16px -12px 0; } }
+
+/* список відсіків */
+.missions-head { display: flex; justify-content: space-between; align-items: baseline; margin: 30px 2px 12px; gap: 12px; flex-wrap: wrap; }
+.missions-head h2 { font-size: 24px; }
+.missions-head p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+.mlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); column-gap: 28px; }
+.mlist li { border-top: 1px solid var(--line); }
+.mrow { width: 100%; display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 13px 4px; background: none; border: 0; text-align: left; }
+.mrow:hover:not(:disabled) .mname { text-decoration: underline; text-underline-offset: 3px; }
+.mrow:disabled { cursor: not-allowed; opacity: .55; }
+.mnum { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font: 700 18px var(--serif); background: var(--panel); border: 1px solid var(--line); }
+.done .mnum { background: var(--leaf); color: #fff; border-color: var(--leaf); }
+.next .mnum { background: var(--amber); color: #2A1E00; border-color: var(--amber); }
+.mname { font-weight: 600; display: block; }
+.mtopic { font-size: 14px; color: var(--ink-soft); }
+.mright { font-size: 14px; color: var(--ink-soft); white-space: nowrap; }
+.mright .st { color: var(--amber); font-size: 16px; letter-spacing: 1px; }
+.mright .st .off { color: var(--line); }
+.pill-next { background: var(--amber-soft); color: var(--amber-ink); padding: 3px 10px; border-radius: 999px; font-weight: 600; }
+
+/* ---------- екран місії ---------- */
+.crumbs { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.back { color: var(--ink); text-decoration: none; background: var(--panel); border: 1px solid var(--line); padding: 7px 14px 7px 10px; border-radius: 999px; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
+.back:hover { border-color: var(--leaf); }
+.crumbs .where { color: var(--ink-soft); font-size: 14px; }
+.mission { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 24px; align-items: start; }
+@media (max-width: 920px) { .mission { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { main { padding: 14px 12px 50px; } .ide .dots, .ed-hint { display: none; } .mlist { grid-template-columns: 1fr; } }
+.brief h1 { font-size: clamp(28px, 3vw, 36px); margin-bottom: 6px; }
+.tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-size: 13px; }
+.tag { background: var(--leaf-soft); color: var(--good); padding: 3px 10px; border-radius: 6px; font-weight: 600; }
+.tag.slide { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); font-weight: 500; }
+.story { color: var(--ink-soft); font-size: 15.5px; font-style: italic; font-family: var(--serif); line-height: 1.6; }
+.block { margin-top: 18px; }
+.block h3 { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+.task { font-size: 16.5px; }
+.task code, .story code, .hint-text code, .explain code { background: var(--leaf-soft); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+.expected { background: var(--code); color: var(--code-ink); font: 14.5px/1.55 var(--mono); padding: 12px 14px; border-radius: 10px; white-space: pre-wrap; margin: 0; }
+.expected .in { color: var(--c-str); }
+.inputs-note { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 5px 0; font-size: 15px; }
+.checks li::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); margin-top: 3px; }
+.checks li.ok::before { border-color: var(--good); background: var(--good); box-shadow: inset 0 0 0 3px var(--panel); }
+.checks li.fail::before { border-color: var(--bad); background: var(--bad-soft); }
+.checks li.fail { color: var(--bad); }
+.verdict { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 15px; }
+.verdict.bad { background: var(--bad-soft); color: var(--ink); border-left: 4px solid var(--bad); }
+.verdict.good { background: var(--leaf-soft); border-left: 4px solid var(--good); }
+.verdict .diff { font: 13.5px/1.5 var(--mono); white-space: pre-wrap; margin-top: 6px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+.hints { display: flex; flex-direction: column; gap: 8px; }
+.hint-btn { align-self: flex-start; background: var(--panel); border: 1px dashed var(--ink-soft); padding: 6px 12px; border-radius: 8px; font-size: 14px; }
+.hint-btn:hover { border-style: solid; }
+.hint-text { background: var(--amber-soft); border-radius: 10px; padding: 10px 12px; font-size: 15px; white-space: pre-wrap; }
+.sol-btn { align-self: flex-start; background: none; border: 0; padding: 4px 0; font-size: 14px; color: var(--ink-soft); text-decoration: underline; }
+
+/* ---------- IDE ---------- */
+.ide { background: var(--code); border-radius: 14px; overflow: hidden; box-shadow: 0 18px 40px -24px rgba(10, 30, 20, .55); color: var(--code-ink); }
+.ide-bar { display: flex; align-items: center; gap: 12px; padding: 9px 12px; background: #17201C; }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.dots i:nth-child(1) { background: #FF5F57; } .dots i:nth-child(2) { background: #FEBC2E; } .dots i:nth-child(3) { background: #28C840; }
+.ide-title { font: 13px var(--mono); color: var(--code-mute); }
+.ide-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.run { background: var(--amber); color: #2A1E00; border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 600; font-size: 14px; display: inline-flex; gap: 8px; align-items: center; }
+.run:hover { background: #F0B83A; }
+.run kbd { font: 11px var(--mono); background: rgba(0,0,0,.14); padding: 1px 5px; border-radius: 4px; }
+.ghost { white-space: nowrap; background: transparent; border: 1px solid #3A4C43; color: var(--code-ink); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.ghost:hover { background: #26342D; }
+.ide select.ghost { padding: 6px 8px; }
+.ide select.ghost option { color: #000; }
+
+.editor { display: grid; grid-template-columns: 44px 1fr; height: 280px; border-bottom: 1px solid #33443B; position: relative; }
+.editor.tall { height: 340px; }
+.gutter { font: 15px/1.6 var(--mono); color: #5E7468; text-align: right; padding: 12px 10px 12px 0; overflow: hidden; user-select: none; background: #1A241F; }
+.gutter div { height: 24px; }
+.code-area { position: relative; overflow: hidden; }
+.code-area textarea, .code-area pre { position: absolute; inset: 0; margin: 0; padding: 12px 14px; font: 15px/1.6 var(--mono); tab-size: 4; white-space: pre; border: 0; letter-spacing: 0; }
+.code-area pre { pointer-events: none; color: var(--code-ink); overflow: hidden; }
+.code-area pre code { font: inherit; display: block; }
+.code-area textarea { background: transparent; color: transparent; caret-color: var(--c-kw); resize: none; outline: none; overflow: auto; }
+.code-area textarea::selection { background: rgba(142, 201, 242, .3); color: transparent; }
+.code-area textarea:focus-visible { box-shadow: inset 0 0 0 2px rgba(224, 165, 38, .55); }
+.tk-kw { color: var(--c-kw); } .tk-str { color: var(--c-str); } .tk-num { color: var(--c-num); } .tk-com { color: var(--code-mute); font-style: italic; } .tk-op { color: #C9D8CF; }
+.ed-hint { position: absolute; right: 10px; bottom: 6px; font: 11px var(--sans); color: #5E7468; pointer-events: none; }
+
+.console-head { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; font: 12.5px var(--sans); color: var(--code-mute); background: #19231E; }
+.console { font: 14.5px/1.55 var(--mono); padding: 10px 14px 14px; min-height: 150px; max-height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.console .placeholder { color: #5E7468; }
+.console .in { color: var(--c-str); }
+.console .err { color: var(--c-err); }
+.console .sys { color: var(--code-mute); font-style: italic; }
+.console .prompt { color: var(--c-kw); }
+.explain { margin-top: 10px; background: #F7EFE0; color: #3A2A10; border-radius: 8px; padding: 10px 12px; font: 14.5px/1.5 var(--sans); white-space: normal; }
+.explain b { display: block; margin-bottom: 2px; }
+.explain code { background: rgba(0,0,0,.07); color: #3A2A10; }
+.in-line { display: flex; align-items: center; gap: 6px; }
+.in-line input { flex: 1; min-width: 60px; background: transparent; border: 0; border-bottom: 1px dashed var(--c-str); color: var(--c-str); font: inherit; padding: 0 2px; outline: none; }
+.repl { display: flex; gap: 8px; align-items: center; padding: 8px 14px 12px; border-top: 1px solid #2D3B34; font: 14.5px var(--mono); }
+.repl input { flex: 1; background: transparent; border: 0; color: var(--code-ink); font: inherit; outline: none; }
+.repl input:focus-visible { box-shadow: 0 1px 0 var(--amber); }
+
+/* ---------- вибір / сканер ---------- */
+.quiz { max-width: 720px; margin: 0 auto; }
+.quiz-top { display: flex; justify-content: space-between; align-items: center; margin: 18px 0 10px; gap: 12px; }
+.qdots { display: flex; gap: 6px; }
+.qdots i { width: 28px; height: 6px; border-radius: 3px; background: var(--line); display: block; }
+.qdots i.cur { background: var(--amber); } .qdots i.ok { background: var(--leaf); }
+.qcard { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.qcard .q { font: 700 21px/1.35 var(--serif); margin-bottom: 14px; }
+.qcode { background: var(--code); color: var(--code-ink); font: 16px/1.5 var(--mono); padding: 14px 16px; border-radius: 10px; margin: 0 0 16px; white-space: pre; overflow-x: auto; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+.opt { text-align: left; background: var(--page); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 16px; display: flex; gap: 10px; align-items: baseline; }
+.opt .k { font: 600 13px var(--mono); color: var(--ink-soft); }
+.opt.code-opt span:last-child { font-family: var(--mono); white-space: pre; }
+.opt:hover:not(:disabled) { border-color: var(--leaf); }
+.opt.right { border-color: var(--good); background: var(--leaf-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.opt:disabled { cursor: default; }
+.qfeed { margin-top: 16px; font-size: 15.5px; }
+.qfeed .actual { margin-top: 8px; }
+.qnext { margin-top: 16px; display: flex; justify-content: flex-end; }
+.btn { background: var(--leaf); color: #fff; border: 0; border-radius: 10px; padding: 11px 20px; font-weight: 600; font-size: 15.5px; }
+.btn:hover { background: #276B4D; }
+.btn.amber { background: var(--amber); color: #2A1E00; } .btn.amber:hover { background: #F0B83A; }
+.btn.plain { background: var(--panel); color: var(--ink); border: 1px solid var(--line); }
+
+.scan-value { font: 600 clamp(34px, 6vw, 54px)/1.2 var(--mono); text-align: center; padding: 26px 10px; background: var(--code); color: var(--code-ink); border-radius: 14px; margin-bottom: 16px; }
+.scan-value .s { color: var(--c-str); } .scan-value .n { color: var(--c-num); } .scan-value .b { color: var(--c-kw); }
+.types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 560px) { .types { grid-template-columns: 1fr 1fr; } }
+.tbtn { background: var(--page); border: 2px solid var(--line); border-radius: 12px; padding: 12px 6px; text-align: center; }
+.tbtn b { display: block; font: 600 20px var(--mono); }
+.tbtn small { color: var(--ink-soft); font-size: 13px; }
+.tbtn:hover:not(:disabled) { border-color: var(--leaf); }
+.tbtn.right { border-color: var(--good); background: var(--leaf-soft); }
+.tbtn.wrong { border-color: var(--bad); background: var(--bad-soft); }
+
+/* ---------- модальні вікна ---------- */
+.modal { position: fixed; inset: 0; background: rgba(12, 30, 22, .62); display: grid; place-items: center; z-index: 50; padding: 20px; }
+.modal-card { background: var(--panel); border-radius: 18px; max-width: 520px; width: 100%; padding: 26px; max-height: calc(100vh - 40px); overflow: auto; }
+.modal-card h2 { font-size: 28px; margin-bottom: 8px; }
+.modal-card .big-stars { font-size: 40px; color: var(--amber); letter-spacing: 6px; margin: 6px 0 4px; }
+.modal-card .big-stars .off { color: var(--line); }
+.modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.learned { background: var(--leaf-soft); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.cert { text-align: center; border: 2px solid var(--amber); border-radius: 14px; padding: 20px 14px; background: var(--amber-soft); }
+.cert .who { font: 700 30px var(--serif); margin: 6px 0; }
+.cert .rank { font-size: 18px; font-weight: 600; color: var(--good); }
+.teacher table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+.teacher td { border-top: 1px solid var(--line); padding: 5px 4px; }
+.teacher label { display: flex; gap: 10px; align-items: center; font-size: 15px; margin: 10px 0; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--space); color: #E8EFEA; padding: 12px 18px; border-radius: 12px; z-index: 60; max-width: calc(100% - 40px); box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); font-size: 15px; }
+.toast a { color: var(--c-kw); }
+
+/* пісочниця */
+.sandbox { display: grid; grid-template-columns: 1fr 300px; gap: 22px; align-items: start; }
+@media (max-width: 980px) { .sandbox { grid-template-columns: 1fr; } }
+.sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; font-size: 14.5px; }
+.sheet h3 { font-size: 18px; margin-bottom: 8px; }
+.sheet dl { margin: 0; }
+.sheet dt { font-family: var(--mono); font-size: 14px; color: var(--good); font-weight: 600; }
+.sheet dd { margin: 0 0 9px; color: var(--ink-soft); }
+.page-title { margin-bottom: 4px; font-size: clamp(26px, 3vw, 34px); }
+.page-sub { color: var(--ink-soft); margin-bottom: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#/" aria-label="Станція «Пітон-1», на головну">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="2" y="13" width="30" height="8" rx="2" fill="#2F7D5A"/><rect x="9" y="5" width="16" height="24" rx="6" fill="#E0A526"/><circle cx="17" cy="13" r="2.4" fill="#173A2C"/><circle cx="17" cy="21" r="2.4" fill="#173A2C"/></svg>
+      <span><b>Пітон-1</b><small>інформатика, 9 клас</small></span>
+    </a>
+    <div class="meter">
+      <div class="cells" id="cells" aria-hidden="true"></div>
+      <span id="progressText"></span>
+      <span class="stars-total" id="starsTotal"></span>
+      <a class="tb-btn" href="#/sandbox">Пісочниця</a>
+      <button class="tb-btn" id="teacherBtn" type="button" aria-label="Для вчителя"><span class="tb-long">Для вчителя</span><span class="tb-short" aria-hidden="true">⚙</span></button>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<div id="modalRoot"></div>
+<div id="toastRoot" aria-live="polite"></div>
+<script>
+/* ===== Міні-інтерпретатор Python (підмножина для вступного уроку) ===== */
+const Py = (() => {
+  class PyError extends Error {
+    constructor(type, msg, line) { super(msg); this.pyType = type; this.pyMsg = msg; this.line = line; }
+  }
+  class NeedInput extends Error { constructor() { super('need input'); } }
+  class BreakSig {} class ContinueSig {}
+  const BREAK = new BreakSig(), CONTINUE = new ContinueSig();
+
+  /* ---------- типи ---------- */
+  const T = (name, call) => ({ __type: name, call });
+  const NONE = null;
+  function typeName(v) {
+    if (v === null) return 'NoneType';
+    switch (typeof v) {
+      case 'bigint': return 'int';
+      case 'number': return 'float';
+      case 'string': return 'str';
+      case 'boolean': return 'bool';
+    }
+    if (Array.isArray(v)) return v.__tuple ? 'tuple' : 'list';
+    if (v.__range) return 'range';
+    if (v.__type) return 'type';
+    if (v.__builtin) return 'builtin_function_or_method';
+    if (v.__module) return 'module';
+    if (v.__method) return 'builtin_function_or_method';
+    return 'object';
+  }
+
+  function floatRepr(x) {
+    if (Number.isNaN(x)) return 'nan';
+    if (!Number.isFinite(x)) return x > 0 ? 'inf' : '-inf';
+    if (x === 0) return Object.is(x, -0) ? '-0.0' : '0.0';
+    const e = x.toExponential(); // shortest round-trip digits
+    let [mant, ex] = e.split('e');
+    const exp = parseInt(ex, 10);
+    const neg = mant[0] === '-';
+    if (neg) mant = mant.slice(1);
+    const digits = mant.replace('.', '');
+    let s;
+    if (exp >= -4 && exp < 16) {
+      if (exp >= 0) {
+        if (digits.length <= exp + 1) s = digits.padEnd(exp + 1, '0') + '.0';
+        else s = digits.slice(0, exp + 1) + '.' + digits.slice(exp + 1);
+      } else {
+        s = '0.' + '0'.repeat(-exp - 1) + digits;
+      }
+    } else {
+      const m = digits.length > 1 ? digits[0] + '.' + digits.slice(1) : digits;
+      const ae = Math.abs(exp);
+      s = m + 'e' + (exp < 0 ? '-' : '+') + (ae < 10 ? '0' + ae : String(ae));
+    }
+    return (neg ? '-' : '') + s;
+  }
+  function strRepr(s) {
+    const q = (s.includes("'") && !s.includes('"')) ? '"' : "'";
+    let out = '';
+    for (const ch of s) {
+      if (ch === '\\') out += '\\\\';
+      else if (ch === q) out += '\\' + q;
+      else if (ch === '\n') out += '\\n';
+      else if (ch === '\t') out += '\\t';
+      else if (ch === '\r') out += '\\r';
+      else out += ch;
+    }
+    return q + out + q;
+  }
+  function repr(v) {
+    if (typeof v === 'string') return strRepr(v);
+    return str(v, true);
+  }
+  function str(v, asRepr) {
+    if (v === null) return 'None';
+    switch (typeof v) {
+      case 'bigint': return v.toString();
+      case 'number': return floatRepr(v);
+      case 'string': return asRepr ? strRepr(v) : v;
+      case 'boolean': return v ? 'True' : 'False';
+    }
+    if (Array.isArray(v)) {
+      const inner = v.map(repr).join(', ');
+      if (v.__tuple) return v.length === 1 ? '(' + inner + ',)' : '(' + inner + ')';
+      return '[' + inner + ']';
+    }
+    if (v.__range) return v.step === 1n ? `range(${v.start}, ${v.stop})` : `range(${v.start}, ${v.stop}, ${v.step})`;
+    if (v.__type) return `<class '${v.__type}'>`;
+    if (v.__builtin) return `<built-in function ${v.__builtin}>`;
+    if (v.__module) return `<module '${v.__module}'>`;
+    if (v.__method) return `<built-in method ${v.__method}>`;
+    return '<object>';
+  }
+  function truthy(v) {
+    if (v === null) return false;
+    switch (typeof v) {
+      case 'bigint': return v !== 0n;
+      case 'number': return v !== 0;
+      case 'string': return v.length > 0;
+      case 'boolean': return v;
+    }
+    if (Array.isArray(v)) return v.length > 0;
+    if (v.__range) return rangeLen(v) > 0n;
+    return true;
+  }
+  const isNum = v => typeof v === 'bigint' || typeof v === 'number' || typeof v === 'boolean';
+  const toBig = v => typeof v === 'boolean' ? (v ? 1n : 0n) : v;
+  function rangeLen(r) {
+    const { start, stop, step } = r;
+    if (step > 0n) return stop > start ? (stop - start + step - 1n) / step : 0n;
+    return start > stop ? (start - stop - step - 1n) / (-step) : 0n;
+  }
+  function editDist(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  function floorDivBig(a, b) {
+    const q = a / b;
+    if ((a % b !== 0n) && ((a < 0n) !== (b < 0n))) return q - 1n;
+    return q;
+  }
+  function modBig(a, b) { const m = a % b; return (m !== 0n && ((m < 0n) !== (b < 0n))) ? m + b : m; }
+
+  /* ---------- лексер ---------- */
+  const KEYWORDS = new Set(['False', 'None', 'True', 'and', 'or', 'not', 'for', 'in', 'while', 'if', 'elif', 'else', 'break', 'continue', 'pass', 'import', 'def', 'return', 'class', 'from', 'as', 'is', 'lambda', 'try', 'except', 'with', 'global', 'del', 'yield', 'raise', 'finally', 'assert', 'nonlocal', 'async', 'await']);
+  const OPS = ['**=', '//=', '**', '//', '==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '->', '+', '-', '*', '/', '%', '<', '>', '=', '(', ')', '[', ']', '{', '}', ':', ',', '.', ';'];
+  const BAD_QUOTES = { '‘': 'U+2018', '’': 'U+2019', '“': 'U+201C', '”': 'U+201D', '«': 'U+00AB', '»': 'U+00BB', '„': 'U+201E', '′': 'U+2032', 'ʼ': 'U+02BC' };
+
+  function tokenize(src) {
+    const toks = [];
+    const lines = src.replace(/\r\n?/g, '\n').split('\n');
+    const indents = [0];
+    let depth = 0; const openStack = [];
+    for (let ln = 0; ln < lines.length; ln++) {
+      let line = lines[ln];
+      let L = ln + 1;
+      let i = 0;
+      if (depth === 0) {
+        let col = 0;
+        while (i < line.length && (line[i] === ' ' || line[i] === '\t')) { col += line[i] === '\t' ? 4 : 1; i++; }
+        if (i >= line.length || line[i] === '#') continue; // порожній рядок / коментар
+        const top = indents[indents.length - 1];
+        if (col > top) { indents.push(col); toks.push({ t: 'INDENT', line: L }); }
+        else if (col < top) {
+          while (col < indents[indents.length - 1]) { indents.pop(); toks.push({ t: 'DEDENT', line: L }); }
+          if (col !== indents[indents.length - 1]) throw new PyError('IndentationError', 'unindent does not match any outer indentation level', L);
+        }
+      }
+      while (i < line.length) {
+        const c = line[i];
+        if (c === ' ' || c === '\t') { i++; continue; }
+        if (c === '#') break;
+        if (c === '\\' && i === line.length - 1) { i++; continue; }
+        // рядки
+        let pre = '';
+        if ((c === 'f' || c === 'F' || c === 'r' || c === 'R') && (line[i + 1] === '"' || line[i + 1] === "'")) { pre = c.toLowerCase(); i++; }
+        const q = line[i];
+        if (q === '"' || q === "'") {
+          const triple = line.substr(i, 3) === q.repeat(3);
+          if (triple) {
+            let j = i + 3, buf = '', curLine = ln, curStr = line;
+            for (;;) {
+              const k = curStr.indexOf(q.repeat(3), j);
+              if (k >= 0) { buf += curStr.slice(j, k); i = k + 3; break; }
+              buf += curStr.slice(j) + '\n';
+              curLine++;
+              if (curLine >= lines.length) throw new PyError('SyntaxError', `unterminated triple-quoted string literal (detected at line ${lines.length})`, L);
+              curStr = lines[curLine]; j = 0;
+            }
+            toks.push({ t: 'STR', v: pre === 'r' ? buf : unescape(buf), f: pre === 'f', line: L });
+            if (curLine !== ln) { ln = curLine; line = curStr; L = ln + 1; }
+            continue;
+          }
+          let j = i + 1, buf = '';
+          while (j < line.length && line[j] !== q) {
+            if (line[j] === '\\' && j + 1 < line.length) { buf += line[j] + line[j + 1]; j += 2; continue; }
+            buf += line[j]; j++;
+          }
+          if (j >= line.length) throw new PyError('SyntaxError', `unterminated string literal (detected at line ${L})`, L);
+          toks.push({ t: 'STR', v: pre === 'r' ? buf : unescape(buf), f: pre === 'f', line: L });
+          i = j + 1; continue;
+        }
+        if (pre) { i--; }
+        // числа
+        if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(line[i + 1] || ''))) {
+          const m = /^(\d[\d_]*)?(\.\d*)?([eE][+-]?\d+)?/.exec(line.slice(i));
+          let txt = m[0];
+          if (!txt) txt = c;
+          const after = line[i + txt.length] || '';
+          if (/[\p{L}_]/u.test(after)) throw new PyError('SyntaxError', 'invalid decimal literal', L);
+          const clean = txt.replace(/_/g, '');
+          if (m[2] !== undefined || m[3] !== undefined) toks.push({ t: 'NUM', v: parseFloat(clean), line: L });
+          else {
+            if (clean.length > 1 && clean[0] === '0' && /[1-9]/.test(clean)) throw new PyError('SyntaxError', 'leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers', L);
+            toks.push({ t: 'NUM', v: BigInt(clean), line: L });
+          }
+          i += txt.length; continue;
+        }
+        // імена
+        const nm = /^[\p{L}_][\p{L}\p{N}_]*/u.exec(line.slice(i));
+        if (nm) {
+          const w = nm[0];
+          toks.push({ t: KEYWORDS.has(w) ? 'KW' : 'NAME', v: w, line: L });
+          i += w.length; continue;
+        }
+        // оператори
+        let op = null;
+        for (const o of OPS) if (line.startsWith(o, i)) { op = o; break; }
+        if (op) {
+          if (op === '(' || op === '[' || op === '{') { depth++; openStack.push({ op, line: L }); }
+          if (op === ')' || op === ']' || op === '}') {
+            const want = { ')': '(', ']': '[', '}': '{' }[op];
+            if (!openStack.length) throw new PyError('SyntaxError', `unmatched '${op}'`, L);
+            const top = openStack.pop(); depth--;
+            if (top.op !== want) throw new PyError('SyntaxError', `closing parenthesis '${op}' does not match opening parenthesis '${top.op}'`, L);
+          }
+          toks.push({ t: 'OP', v: op, line: L });
+          i += op.length; continue;
+        }
+        if (BAD_QUOTES[c]) throw new PyError('SyntaxError', `invalid character '${c}' (${BAD_QUOTES[c]})`, L);
+        if (c === '!' ) throw new PyError('SyntaxError', 'invalid syntax', L);
+        throw new PyError('SyntaxError', `invalid character '${c}' (U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')})`, L);
+      }
+      if (depth === 0 && toks.length && toks[toks.length - 1].t !== 'NEWLINE' && toks[toks.length - 1].t !== 'INDENT' && toks[toks.length - 1].t !== 'DEDENT') toks.push({ t: 'NEWLINE', line: L });
+    }
+    if (openStack.length) { const o = openStack[openStack.length - 1]; throw new PyError('SyntaxError', `'${o.op}' was never closed`, o.line); }
+    const last = lines.length;
+    if (toks.length && toks[toks.length - 1].t !== 'NEWLINE') toks.push({ t: 'NEWLINE', line: last });
+    while (indents.length > 1) { indents.pop(); toks.push({ t: 'DEDENT', line: last }); }
+    toks.push({ t: 'EOF', line: last });
+    return toks;
+  }
+  function unescape(s) {
+    return s.replace(/\\(n|t|r|\\|'|"|0|\n)/g, (m, c) => ({ n: '\n', t: '\t', r: '\r', '\\': '\\', "'": "'", '"': '"', '0': '\0', '\n': '' }[c]));
+  }
+
+  /* ---------- парсер ---------- */
+  function parse(src) {
+    const toks = tokenize(src);
+    let p = 0;
+    const peek = (o = 0) => toks[p + o];
+    const at = (t, v) => { const k = toks[p]; return k.t === t && (v === undefined || k.v === v); };
+    const eat = (t, v) => { if (at(t, v)) return toks[p++]; return null; };
+    const syntax = (msg, line) => new PyError('SyntaxError', msg || 'invalid syntax', line || peek().line);
+    const expect = (t, v, msg) => { const k = eat(t, v); if (!k) throw syntax(msg); return k; };
+
+    function parseFile() {
+      const body = [];
+      while (!at('EOF')) {
+        if (eat('NEWLINE')) continue;
+        if (at('INDENT')) throw new PyError('IndentationError', 'unexpected indent', peek().line);
+        body.push(...statement());
+      }
+      return body;
+    }
+    function block(kind, line) {
+      if (eat('NEWLINE')) {
+        if (!eat('INDENT')) throw new PyError('IndentationError', `expected an indented block after '${kind}' statement on line ${line}`, peek().line);
+        const body = [];
+        while (!eat('DEDENT')) {
+          if (at('EOF')) break;
+          if (eat('NEWLINE')) continue;
+          if (at('INDENT')) throw new PyError('IndentationError', 'unexpected indent', peek().line);
+          body.push(...statement());
+        }
+        return body;
+      }
+      return simpleLine();
+    }
+    function statement() {
+      const k = peek();
+      if (k.t === 'KW') {
+        if (k.v === 'for') {
+          p++;
+          const tgt = expect('NAME', undefined, 'invalid syntax');
+          let targets = [tgt.v];
+          while (eat('OP', ',')) targets.push(expect('NAME').v);
+          expect('KW', 'in', "invalid syntax");
+          const iter = exprList();
+          expect('OP', ':', "expected ':'");
+          const body = block('for', k.line);
+          let orelse = null;
+          if (at('KW', 'else') ) { const e = toks[p++]; expect('OP', ':', "expected ':'"); orelse = block('else', e.line); }
+          return [{ k: 'for', targets, iter, body, orelse, line: k.line }];
+        }
+        if (k.v === 'while') {
+          p++;
+          const test = expr();
+          if (at('OP', '=')) throw syntax("invalid syntax. Maybe you meant '==' or ':=' instead of '='?");
+          expect('OP', ':', "expected ':'");
+          const body = block('while', k.line);
+          return [{ k: 'while', test, body, line: k.line }];
+        }
+        if (k.v === 'if') {
+          p++;
+          const test = expr();
+          if (at('OP', '=')) throw syntax("invalid syntax. Maybe you meant '==' or ':=' instead of '='?");
+          expect('OP', ':', "expected ':'");
+          const body = block('if', k.line);
+          const node = { k: 'if', test, body, orelse: [], line: k.line };
+          let cur = node;
+          for (;;) {
+            if (at('KW', 'elif')) {
+              const e = toks[p++];
+              const t2 = expr(); expect('OP', ':', "expected ':'");
+              const n2 = { k: 'if', test: t2, body: block('elif', e.line), orelse: [], line: e.line };
+              cur.orelse = [n2]; cur = n2; continue;
+            }
+            if (at('KW', 'else')) {
+              const e = toks[p++];
+              expect('OP', ':', "expected ':'");
+              cur.orelse = block('else', e.line);
+            }
+            break;
+          }
+          return [node];
+        }
+        if (['def', 'class', 'try', 'with', 'lambda', 'return', 'from', 'global', 'raise', 'yield', 'assert', 'del'].includes(k.v)) {
+          throw new PyError('Unsupported', `Конструкцію «${k.v}» цей навчальний тренажер ще не підтримує. Вона є у справжньому Python — спробуй її в IDLE чи Thonny.`, k.line);
+        }
+        if (k.v === 'elif' || k.v === 'else') throw syntax('invalid syntax');
+      }
+      return simpleLine();
+    }
+    function simpleLine() {
+      const out = [simple()];
+      while (eat('OP', ';')) { if (at('NEWLINE')) break; out.push(simple()); }
+      if (!eat('NEWLINE')) {
+        if (at('EOF')) return out;
+        throw syntax();
+      }
+      return out;
+    }
+    function simple() {
+      const k = peek();
+      if (k.t === 'KW') {
+        if (k.v === 'pass') { p++; return { k: 'pass', line: k.line }; }
+        if (k.v === 'break') { p++; return { k: 'break', line: k.line }; }
+        if (k.v === 'continue') { p++; return { k: 'continue', line: k.line }; }
+        if (k.v === 'import') {
+          p++;
+          const names = [expect('NAME').v];
+          while (eat('OP', ',')) names.push(expect('NAME').v);
+          return { k: 'import', names, line: k.line };
+        }
+      }
+      const first = exprList();
+      if (at('OP', '=')) {
+        const targets = [first];
+        let value;
+        while (eat('OP', '=')) { value = exprList(); targets.push(value); }
+        value = targets.pop();
+        for (const t of targets) checkTarget(t, k.line);
+        return { k: 'assign', targets, value, line: k.line };
+      }
+      const aug = ['+=', '-=', '*=', '/=', '//=', '%=', '**='].find(o => at('OP', o));
+      if (aug) {
+        p++;
+        checkTarget(first, k.line, true);
+        return { k: 'aug', target: first, op: aug.slice(0, -1), value: exprList(), line: k.line };
+      }
+      if (at('OP', '==') ) throw syntax();
+      return { k: 'expr', e: first, line: k.line };
+    }
+    function checkTarget(t, line, aug) {
+      if (t.k === 'name' || t.k === 'sub') return;
+      if (t.k === 'tuple' && !aug && t.items.every(x => x.k === 'name' || x.k === 'sub')) return;
+      if (t.k === 'call') throw new PyError('SyntaxError', "cannot assign to function call here. Maybe you meant '==' instead of '='?", line);
+      if (t.k === 'const') throw new PyError('SyntaxError', "cannot assign to literal here. Maybe you meant '==' instead of '='?", line);
+      throw new PyError('SyntaxError', "cannot assign to expression here. Maybe you meant '==' instead of '='?", line);
+    }
+    function exprList() {
+      const line = peek().line;
+      const first = expr();
+      if (!at('OP', ',')) return first;
+      const items = [first];
+      while (eat('OP', ',')) {
+        if (at('NEWLINE') || at('OP', '=') || at('OP', ')') || at('OP', ':') || at('EOF')) break;
+        items.push(expr());
+      }
+      return { k: 'tuple', items, line };
+    }
+    function expr() { return orExpr(); }
+    function orExpr() {
+      let l = andExpr();
+      while (at('KW', 'or')) { const t = toks[p++]; l = { k: 'bool', op: 'or', l, r: andExpr(), line: t.line }; }
+      return l;
+    }
+    function andExpr() {
+      let l = notExpr();
+      while (at('KW', 'and')) { const t = toks[p++]; l = { k: 'bool', op: 'and', l, r: notExpr(), line: t.line }; }
+      return l;
+    }
+    function notExpr() {
+      if (at('KW', 'not')) { const t = toks[p++]; return { k: 'not', e: notExpr(), line: t.line }; }
+      return comparison();
+    }
+    const CMP = ['==', '!=', '<', '>', '<=', '>='];
+    function comparison() {
+      const first = arith();
+      const ops = [], rest = [];
+      for (;;) {
+        if (peek().t === 'OP' && CMP.includes(peek().v)) { ops.push(toks[p++].v); rest.push(arith()); continue; }
+        if (at('KW', 'in')) { p++; ops.push('in'); rest.push(arith()); continue; }
+        if (at('KW', 'not') && peek(1).t === 'KW' && peek(1).v === 'in') { p += 2; ops.push('not in'); rest.push(arith()); continue; }
+        if (at('KW', 'is')) { p++; if (eat('KW', 'not')) ops.push('is not'); else ops.push('is'); rest.push(arith()); continue; }
+        break;
+      }
+      if (!ops.length) return first;
+      return { k: 'cmp', first, ops, rest, line: first.line };
+    }
+    function arith() {
+      let l = term();
+      while (peek().t === 'OP' && (peek().v === '+' || peek().v === '-')) { const t = toks[p++]; l = { k: 'bin', op: t.v, l, r: term(), line: t.line }; }
+      return l;
+    }
+    function term() {
+      let l = unary();
+      while (peek().t === 'OP' && ['*', '/', '//', '%'].includes(peek().v)) { const t = toks[p++]; l = { k: 'bin', op: t.v, l, r: unary(), line: t.line }; }
+      return l;
+    }
+    function unary() {
+      if (peek().t === 'OP' && (peek().v === '-' || peek().v === '+')) { const t = toks[p++]; return { k: 'unary', op: t.v, e: unary(), line: t.line }; }
+      return power();
+    }
+    function power() {
+      const base = postfix();
+      if (at('OP', '**')) { const t = toks[p++]; return { k: 'bin', op: '**', l: base, r: unary(), line: t.line }; }
+      return base;
+    }
+    function postfix() {
+      let e = atom();
+      for (;;) {
+        if (at('OP', '(')) {
+          const t = toks[p++];
+          const args = [], kwargs = [];
+          while (!at('OP', ')')) {
+            if (peek().t === 'NAME' && peek(1).t === 'OP' && peek(1).v === '=') {
+              const n = toks[p].v; p += 2; kwargs.push({ name: n, v: expr() });
+            } else {
+              if (kwargs.length) throw syntax('positional argument follows keyword argument');
+              args.push(expr());
+            }
+            if (!eat('OP', ',')) break;
+          }
+          if (!eat('OP', ')')) {
+            const k = peek();
+            if (k.t === 'NUM' || k.t === 'STR' || k.t === 'NAME') throw syntax('invalid syntax. Perhaps you forgot a comma?', k.line);
+            throw syntax();
+          }
+          e = { k: 'call', f: e, args, kwargs, line: t.line };
+          continue;
+        }
+        if (at('OP', '[')) {
+          const t = toks[p++];
+          let a = null, b = null, c = null, isSlice = false;
+          if (!at('OP', ':')) a = expr();
+          if (eat('OP', ':')) {
+            isSlice = true;
+            if (!at('OP', ']') && !at('OP', ':')) b = expr();
+            if (eat('OP', ':')) { if (!at('OP', ']')) c = expr(); }
+          }
+          expect('OP', ']', "invalid syntax");
+          e = isSlice ? { k: 'slice', obj: e, a, b, c, line: t.line } : { k: 'sub', obj: e, idx: a, line: t.line };
+          continue;
+        }
+        if (at('OP', '.')) {
+          const t = toks[p++];
+          const n = expect('NAME', undefined, 'invalid syntax');
+          e = { k: 'attr', obj: e, name: n.v, line: t.line };
+          continue;
+        }
+        break;
+      }
+      return e;
+    }
+    function atom() {
+      const k = peek();
+      if (k.t === 'NUM') { p++; return { k: 'const', v: k.v, line: k.line }; }
+      if (k.t === 'STR') {
+        p++;
+        const parts = [k];
+        while (peek().t === 'STR') parts.push(toks[p++]);
+        if (parts.some(x => x.f)) return { k: 'fstr', parts: parts.map(x => x.f ? parseFString(x.v, x.line) : [x.v]), line: k.line };
+        return { k: 'const', v: parts.map(x => x.v).join(''), line: k.line };
+      }
+      if (k.t === 'NAME') { p++; return { k: 'name', id: k.v, line: k.line }; }
+      if (k.t === 'KW') {
+        if (k.v === 'True') { p++; return { k: 'const', v: true, line: k.line }; }
+        if (k.v === 'False') { p++; return { k: 'const', v: false, line: k.line }; }
+        if (k.v === 'None') { p++; return { k: 'const', v: null, line: k.line }; }
+        throw syntax();
+      }
+      if (k.t === 'OP' && k.v === '(') {
+        p++;
+        if (eat('OP', ')')) return { k: 'tuple', items: [], line: k.line };
+        const first = expr();
+        if (eat('OP', ')')) return first;
+        if (eat('OP', ',')) {
+          const items = [first];
+          while (!at('OP', ')')) { items.push(expr()); if (!eat('OP', ',')) break; }
+          expect('OP', ')');
+          return { k: 'tuple', items, line: k.line };
+        }
+        throw syntax('invalid syntax. Perhaps you forgot a comma?');
+      }
+      if (k.t === 'OP' && k.v === '[') {
+        p++;
+        const items = [];
+        while (!at('OP', ']')) { items.push(expr()); if (!eat('OP', ',')) break; }
+        expect('OP', ']', 'invalid syntax. Perhaps you forgot a comma?');
+        return { k: 'list', items, line: k.line };
+      }
+      if (k.t === 'NEWLINE' || k.t === 'EOF') throw syntax('invalid syntax', k.line);
+      if (k.t === 'INDENT') throw new PyError('IndentationError', 'unexpected indent', k.line);
+      throw syntax();
+    }
+    function parseFString(s, line) {
+      const parts = [];
+      let i = 0, buf = '';
+      while (i < s.length) {
+        if (s[i] === '{' && s[i + 1] === '{') { buf += '{'; i += 2; continue; }
+        if (s[i] === '}' && s[i + 1] === '}') { buf += '}'; i += 2; continue; }
+        if (s[i] === '{') {
+          const j = s.indexOf('}', i);
+          if (j < 0) throw new PyError('SyntaxError', "f-string: expecting '}'", line);
+          if (buf) parts.push(buf); buf = '';
+          let inner = s.slice(i + 1, j), spec = '';
+          const ci = inner.indexOf(':');
+          if (ci >= 0) { spec = inner.slice(ci + 1); inner = inner.slice(0, ci); }
+          const sub = parse(inner).body;
+          if (sub.length !== 1 || sub[0].k !== 'expr') throw new PyError('SyntaxError', 'f-string: invalid syntax', line);
+          parts.push({ e: sub[0].e, spec });
+          i = j + 1; continue;
+        }
+        buf += s[i]; i++;
+      }
+      if (buf) parts.push(buf);
+      return parts;
+    }
+    return { body: parseFile(), lines: src.replace(/\r\n?/g, '\n').split('\n') };
+  }
+
+  /* ---------- виконання ---------- */
+  const ZEN = `The Zen of Python, by Tim Peters
+
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should be one-- and preferably only one --obvious way to do it.
+Although that way may not be obvious at first unless you're Dutch.
+Now is better than never.
+Although never is often better than *right* now.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is easy to explain, it may be a good idea.
+Namespaces are one honking great idea -- let's do more of those!`;
+
+  function run(src, opts = {}) {
+    const inputs = (opts.inputs || []).slice();
+    const out = []; // сегменти {text, kind}
+    const events = [];
+    let steps = 0, lines = 0;
+    const MAX_STEPS = opts.maxSteps || 300000;
+    const env = opts.env || Object.create(null);
+    let curLine = 0;
+
+    const write = (text, kind = 'out') => {
+      if (!text) return;
+      lines += (text.match(/\n/g) || []).length;
+      if (lines > 3000) throw new PyError('OutputLimit', 'Програма вивела понад 3000 рядків — виконання зупинено.', curLine);
+      const lastSeg = out[out.length - 1];
+      if (lastSeg && lastSeg.kind === kind) lastSeg.text += text; else out.push({ text, kind });
+    };
+    const err = (type, msg) => new PyError(type, msg, curLine);
+    const tick = () => { if (++steps > MAX_STEPS) throw new PyError('Timeout', 'Програма виконується надто довго (можливо, нескінченний цикл) — виконання зупинено.', curLine); };
+
+    function argCount(name, args, min, max) {
+      if (args.length < min || args.length > max) {
+        if (min === max) throw err('TypeError', `${name}() takes exactly ${min} argument${min === 1 ? '' : 's'} (${args.length} given)`);
+        throw err('TypeError', `${name} expected at most ${max} argument${max === 1 ? '' : 's'}, got ${args.length}`);
+      }
+    }
+    function toInt(v) {
+      if (typeof v === 'bigint') return v;
+      if (typeof v === 'boolean') return v ? 1n : 0n;
+      if (typeof v === 'number') {
+        if (!Number.isFinite(v)) throw err(Number.isNaN(v) ? 'ValueError' : 'OverflowError', Number.isNaN(v) ? 'cannot convert float NaN to integer' : 'cannot convert float infinity to integer');
+        return BigInt(Math.trunc(v));
+      }
+      if (typeof v === 'string') {
+        const s = v.trim().replace(/_/g, '');
+        if (/^[+-]?\d+$/.test(s)) return BigInt(s);
+        throw err('ValueError', `invalid literal for int() with base 10: ${strRepr(v)}`);
+      }
+      throw err('TypeError', `int() argument must be a string, a bytes-like object or a real number, not '${typeName(v)}'`);
+    }
+    function toFloat(v) {
+      if (typeof v === 'number') return v;
+      if (typeof v === 'bigint' || typeof v === 'boolean') return Number(toBig(v));
+      if (typeof v === 'string') {
+        const s = v.trim().toLowerCase();
+        if (/^[+-]?(\d[\d_]*\.?\d*|\.\d+)(e[+-]?\d+)?$/.test(s)) return parseFloat(s.replace(/_/g, ''));
+        if (/^[+-]?(inf|infinity)$/.test(s)) return s[0] === '-' ? -Infinity : Infinity;
+        if (/^[+-]?nan$/.test(s)) return NaN;
+        throw err('ValueError', `could not convert string to float: ${strRepr(v)}`);
+      }
+      throw err('TypeError', `float() argument must be a string or a real number, not '${typeName(v)}'`);
+    }
+    function iterate(v) {
+      if (typeof v === 'string') return Array.from(v);
+      if (Array.isArray(v)) return v;
+      if (v && v.__range) {
+        const n = rangeLen(v);
+        if (n > 5000000n) throw new PyError('Timeout', 'Занадто великий range() для навчального тренажера.', curLine);
+        const res = []; let x = v.start;
+        for (let i = 0n; i < n; i++) { res.push(x); x += v.step; }
+        return res;
+      }
+      throw err('TypeError', `'${typeName(v)}' object is not iterable`);
+    }
+    function roundHalfEven(x) {
+      const f = Math.floor(x), d = x - f;
+      if (d > 0.5) return f + 1; if (d < 0.5) return f;
+      return f % 2 === 0 ? f : f + 1;
+    }
+
+    const B = (name, fn) => ({ __builtin: name, fn });
+    const builtins = {
+      print: B('print', (args, kw) => {
+        let sep = ' ', end = '\n';
+        for (const k of kw) {
+          if (k.name === 'sep') sep = k.v === null ? ' ' : (typeof k.v === 'string' ? k.v : (() => { throw err('TypeError', `sep must be None or a string, not ${typeName(k.v)}`); })());
+          else if (k.name === 'end') end = k.v === null ? '\n' : (typeof k.v === 'string' ? k.v : (() => { throw err('TypeError', `end must be None or a string, not ${typeName(k.v)}`); })());
+          else throw err('TypeError', `'${k.name}' is an invalid keyword argument for print()`);
+        }
+        write(args.map(a => str(a)).join(sep) + end);
+        return null;
+      }),
+      input: B('input', (args) => {
+        argCount('input', args, 0, 1);
+        if (args.length) write(str(args[0]));
+        if (!inputs.length) throw new NeedInput();
+        const v = inputs.shift();
+        write(v + '\n', 'in');
+        return v;
+      }),
+      int: T('int', (args) => { argCount('int', args, 0, 1); return args.length ? toInt(args[0]) : 0n; }),
+      float: T('float', (args) => { argCount('float', args, 0, 1); return args.length ? toFloat(args[0]) : 0; }),
+      str: T('str', (args) => { argCount('str', args, 0, 1); return args.length ? str(args[0]) : ''; }),
+      bool: T('bool', (args) => { argCount('bool', args, 0, 1); return args.length ? truthy(args[0]) : false; }),
+      list: T('list', (args) => { argCount('list', args, 0, 1); return args.length ? iterate(args[0]).slice() : []; }),
+      tuple: T('tuple', (args) => { const a = args.length ? iterate(args[0]).slice() : []; a.__tuple = true; return a; }),
+      type: B('type', (args) => {
+        argCount('type', args, 1, 1);
+        const n = typeName(args[0]);
+        return builtins[n] && builtins[n].__type ? builtins[n] : T(n);
+      }),
+      len: B('len', (args) => {
+        argCount('len', args, 1, 1);
+        const v = args[0];
+        if (typeof v === 'string') return BigInt(Array.from(v).length);
+        if (Array.isArray(v)) return BigInt(v.length);
+        if (v && v.__range) return rangeLen(v);
+        throw err('TypeError', `object of type '${typeName(v)}' has no len()`);
+      }),
+      abs: B('abs', (args) => {
+        argCount('abs', args, 1, 1);
+        const v = args[0];
+        if (typeof v === 'number') return Math.abs(v);
+        if (isNum(v)) { const b = toBig(v); return b < 0n ? -b : b; }
+        throw err('TypeError', `bad operand type for abs(): '${typeName(v)}'`);
+      }),
+      round: B('round', (args) => {
+        argCount('round', args, 1, 2);
+        const v = args[0];
+        if (!isNum(v)) throw err('TypeError', `type ${typeName(v)} doesn't define __round__ method`);
+        if (args.length === 1 || args[1] === null) return typeof v === 'number' ? BigInt(roundHalfEven(v)) : toBig(v);
+        const n = Number(toInt(args[1]));
+        if (typeof v !== 'number') return toBig(v);
+        const m = Math.pow(10, n);
+        return roundHalfEven(Math.round(v * m * 1e6) / 1e6) / m;
+      }),
+      range: B('range', (args) => {
+        if (args.length < 1 || args.length > 3) throw err('TypeError', `range expected at least 1 argument, got ${args.length}`);
+        const ints = args.map(a => {
+          if (typeof a === 'bigint' || typeof a === 'boolean') return toBig(a);
+          throw err('TypeError', `'${typeName(a)}' object cannot be interpreted as an integer`);
+        });
+        let [start, stop, step] = ints.length === 1 ? [0n, ints[0], 1n] : [ints[0], ints[1], ints[2] ?? 1n];
+        if (step === 0n) throw err('ValueError', 'range() arg 3 must not be zero');
+        return { __range: true, start, stop, step };
+      }),
+      min: B('min', (args) => minmax(args, 'min')),
+      max: B('max', (args) => minmax(args, 'max')),
+      sum: B('sum', (args) => {
+        let acc = 0n;
+        for (const x of iterate(args[0])) acc = binop('+', acc, x);
+        return acc;
+      }),
+      sorted: B('sorted', (args, kw) => {
+        const a = iterate(args[0]).slice();
+        a.sort((x, y) => compare(x, y));
+        if (kw.some(k => k.name === 'reverse' && truthy(k.v))) a.reverse();
+        return a;
+      }),
+      reversed: B('reversed', (args) => iterate(args[0]).slice().reverse()),
+      ord: B('ord', (args) => BigInt(String(args[0]).codePointAt(0))),
+      chr: B('chr', (args) => String.fromCodePoint(Number(toInt(args[0])))),
+      repr: B('repr', (args) => repr(args[0])),
+      exit: B('exit', () => { throw new PyError('Exit', '', curLine); }),
+      quit: B('quit', () => { throw new PyError('Exit', '', curLine); }),
+    };
+    function minmax(args, name) {
+      const items = args.length === 1 ? iterate(args[0]) : args;
+      if (!items.length) throw err('ValueError', `${name}() iterable argument is empty`);
+      let best = items[0];
+      for (const x of items.slice(1)) { const c = compare(x, best); if (name === 'min' ? c < 0 : c > 0) best = x; }
+      return best;
+    }
+    const modules = {
+      math: () => ({ __module: 'math', attrs: {
+        pi: Math.PI, e: Math.E,
+        sqrt: B('sqrt', a => { const v = toFloat(a[0]); if (v < 0) throw err('ValueError', 'math domain error'); return Math.sqrt(v); }),
+        floor: B('floor', a => toInt(Math.floor(toFloat(a[0])))),
+        ceil: B('ceil', a => toInt(Math.ceil(toFloat(a[0])))),
+      } }),
+    };
+
+    function lookup(name) {
+      if (name in env) return env[name];
+      if (Object.prototype.hasOwnProperty.call(builtins, name)) return builtins[name];
+      const all = [...Object.keys(env), ...Object.keys(builtins)];
+      let hint = all.find(n => n.toLowerCase() === name.toLowerCase() && n !== name);
+      if (!hint && name.length >= 3) hint = all.find(n => !n.startsWith('_') && n.length >= 3 && editDist(n, name) <= (name.length > 5 ? 2 : 1));
+      throw err('NameError', `name '${name}' is not defined` + (hint ? `. Did you mean: '${hint}'?` : ''));
+    }
+    function compare(a, b) {
+      if (isNum(a) && isNum(b)) {
+        if (typeof a === 'number' || typeof b === 'number') { const x = Number(toBig(a)), y = Number(toBig(b)); return x < y ? -1 : x > y ? 1 : 0; }
+        const x = toBig(a), y = toBig(b); return x < y ? -1 : x > y ? 1 : 0;
+      }
+      if (typeof a === 'string' && typeof b === 'string') return a < b ? -1 : a > b ? 1 : 0;
+      if (Array.isArray(a) && Array.isArray(b)) {
+        for (let i = 0; i < Math.min(a.length, b.length); i++) { const c = compare(a[i], b[i]); if (c) return c; }
+        return a.length - b.length;
+      }
+      return NaN;
+    }
+    function eq(a, b) {
+      if (isNum(a) && isNum(b)) return compare(a, b) === 0;
+      if (typeof a === 'string' && typeof b === 'string') return a === b;
+      if (Array.isArray(a) && Array.isArray(b)) return !!a.__tuple === !!b.__tuple && a.length === b.length && a.every((x, i) => eq(x, b[i]));
+      if (a && b && a.__type && b.__type) return a.__type === b.__type;
+      return a === b;
+    }
+    const opName = { '+': '+', '-': '-', '*': '*', '/': '/', '//': '//', '%': '%', '**': '** or pow()' };
+    function binop(op, a, b) {
+      if (isNum(a) && isNum(b)) {
+        if (typeof a === 'number' || typeof b === 'number') {
+          const x = typeof a === 'number' ? a : Number(toBig(a)), y = typeof b === 'number' ? b : Number(toBig(b));
+          switch (op) {
+            case '+': return x + y; case '-': return x - y; case '*': return x * y;
+            case '/': if (y === 0) throw err('ZeroDivisionError', 'float division by zero'); return x / y;
+            case '//': if (y === 0) throw err('ZeroDivisionError', 'float floor division by zero'); return Math.floor(x / y);
+            case '%': if (y === 0) throw err('ZeroDivisionError', 'float modulo by zero'); { const m = x - y * Math.floor(x / y); return m; }
+            case '**': if (x === 0 && y < 0) throw err('ZeroDivisionError', 'zero to a negative power'); return Math.pow(x, y);
+          }
+        }
+        const x = toBig(a), y = toBig(b);
+        switch (op) {
+          case '+': return x + y; case '-': return x - y; case '*': return x * y;
+          case '/': if (y === 0n) throw err('ZeroDivisionError', 'division by zero'); return Number(x) / Number(y);
+          case '//': if (y === 0n) throw err('ZeroDivisionError', 'integer division or modulo by zero'); return floorDivBig(x, y);
+          case '%': if (y === 0n) throw err('ZeroDivisionError', 'integer modulo by zero'); return modBig(x, y);
+          case '**':
+            if (y < 0n) { if (x === 0n) throw err('ZeroDivisionError', 'zero to a negative power'); return Math.pow(Number(x), Number(y)); }
+            if (y > 20000n && (x > 1n || x < -1n)) throw new PyError('Timeout', 'Занадто велике число для навчального тренажера.', curLine);
+            return x ** y;
+        }
+      }
+      if (op === '+') {
+        if (typeof a === 'string' && typeof b === 'string') return a + b;
+        if (Array.isArray(a) && Array.isArray(b) && !!a.__tuple === !!b.__tuple) { const r = a.concat(b); if (a.__tuple) r.__tuple = true; return r; }
+        if (typeof a === 'string') throw err('TypeError', `can only concatenate str (not "${typeName(b)}") to str`);
+        if (Array.isArray(a) && !a.__tuple) throw err('TypeError', `can only concatenate list (not "${typeName(b)}") to list`);
+      }
+      if (op === '*') {
+        let s = null, n = null;
+        if ((typeof a === 'string' || Array.isArray(a)) && (typeof b === 'bigint' || typeof b === 'boolean')) { s = a; n = toBig(b); }
+        else if ((typeof b === 'string' || Array.isArray(b)) && (typeof a === 'bigint' || typeof a === 'boolean')) { s = b; n = toBig(a); }
+        if (s !== null) {
+          const k = n < 0n ? 0 : Number(n);
+          if (k * (s.length || 1) > 1000000) throw new PyError('Timeout', 'Занадто довгий результат для навчального тренажера.', curLine);
+          if (typeof s === 'string') return s.repeat(k);
+          let r = []; for (let i = 0; i < k; i++) r = r.concat(s); if (s.__tuple) r.__tuple = true; return r;
+        }
+        if (typeof a === 'string' || Array.isArray(a)) throw err('TypeError', `can't multiply sequence by non-int of type '${typeName(b)}'`);
+        if (typeof b === 'string' || Array.isArray(b)) throw err('TypeError', `can't multiply sequence by non-int of type '${typeName(a)}'`);
+      }
+      throw err('TypeError', `unsupported operand type(s) for ${opName[op]}: '${typeName(a)}' and '${typeName(b)}'`);
+    }
+    function index(obj, i) {
+      if (typeof obj === 'string' || Array.isArray(obj)) {
+        const arr = typeof obj === 'string' ? Array.from(obj) : obj;
+        if (typeof i !== 'bigint' && typeof i !== 'boolean') throw err('TypeError', `${typeName(obj)} indices must be integers or slices, not ${typeName(i)}`);
+        let n = Number(toBig(i)); if (n < 0) n += arr.length;
+        if (n < 0 || n >= arr.length) throw err('IndexError', `${typeName(obj)} index out of range`);
+        return arr[n];
+      }
+      throw err('TypeError', `'${typeName(obj)}' object is not subscriptable`);
+    }
+    function callMethod(obj, name, args) {
+      const t = typeName(obj);
+      if (t === 'str') {
+        const m = {
+          upper: () => obj.toUpperCase(), lower: () => obj.toLowerCase(),
+          strip: () => obj.trim(), title: () => obj.replace(/\p{L}+/gu, w => w[0].toUpperCase() + w.slice(1).toLowerCase()),
+          capitalize: () => obj ? obj[0].toUpperCase() + obj.slice(1).toLowerCase() : obj,
+          replace: () => obj.split(str(args[0])).join(str(args[1])),
+          split: () => args.length ? obj.split(str(args[0])) : obj.trim().split(/\s+/).filter(Boolean),
+          count: () => BigInt(obj.split(str(args[0])).length - 1),
+          find: () => BigInt(obj.indexOf(str(args[0]))),
+          startswith: () => obj.startsWith(str(args[0])), endswith: () => obj.endsWith(str(args[0])),
+          isdigit: () => /^\d+$/.test(obj), isalpha: () => /^\p{L}+$/u.test(obj),
+          join: () => iterate(args[0]).map(x => { if (typeof x !== 'string') throw err('TypeError', `sequence item: expected str instance, ${typeName(x)} found`); return x; }).join(obj),
+        }[name];
+        if (m) return m();
+      }
+      if (t === 'list') {
+        const m = {
+          append: () => { obj.push(args[0]); return null; },
+          pop: () => { if (!obj.length) throw err('IndexError', 'pop from empty list'); if (args.length) { let n = Number(toInt(args[0])); if (n < 0) n += obj.length; if (n < 0 || n >= obj.length) throw err('IndexError', 'pop index out of range'); return obj.splice(n, 1)[0]; } return obj.pop(); },
+          insert: () => { let n = Number(toInt(args[0])); if (n < 0) n = Math.max(0, n + obj.length); obj.splice(n, 0, args[1]); return null; },
+          remove: () => { const i = obj.findIndex(x => eq(x, args[0])); if (i < 0) throw err('ValueError', 'list.remove(x): x not in list'); obj.splice(i, 1); return null; },
+          sort: () => { obj.sort((x, y) => compare(x, y)); return null; },
+          reverse: () => { obj.reverse(); return null; },
+          index: () => { const i = obj.findIndex(x => eq(x, args[0])); if (i < 0) throw err('ValueError', `${repr(args[0])} is not in list`); return BigInt(i); },
+          count: () => BigInt(obj.filter(x => eq(x, args[0])).length),
+          clear: () => { obj.length = 0; return null; },
+        }[name];
+        if (m) return m();
+      }
+      throw err('AttributeError', `'${t}' object has no attribute '${name}'`);
+    }
+
+    function evalE(n) {
+      switch (n.k) {
+        case 'const': return n.v;
+        case 'name': curLine = n.line; return lookup(n.id);
+        case 'fstr': return n.parts.map(part => part.map(x => {
+          if (typeof x === 'string') return x;
+          const v = evalE(x.e);
+          if (x.spec) {
+            const m = /^\.(\d+)f$/.exec(x.spec);
+            if (m) return toFloat(v).toFixed(+m[1]);
+          }
+          return str(v);
+        }).join('')).join('');
+        case 'tuple': { const r = n.items.map(evalE); r.__tuple = true; return r; }
+        case 'list': return n.items.map(evalE);
+        case 'bool': { const l = evalE(n.l); if (n.op === 'and') return truthy(l) ? evalE(n.r) : l; return truthy(l) ? l : evalE(n.r); }
+        case 'not': return !truthy(evalE(n.e));
+        case 'unary': {
+          const v = evalE(n.e); curLine = n.line;
+          if (typeof v === 'number') return n.op === '-' ? -v : v;
+          if (isNum(v)) return n.op === '-' ? -toBig(v) : toBig(v);
+          throw err('TypeError', `bad operand type for unary ${n.op}: '${typeName(v)}'`);
+        }
+        case 'bin': { const a = evalE(n.l), b = evalE(n.r); curLine = n.line; return binop(n.op, a, b); }
+        case 'cmp': {
+          let a = evalE(n.first);
+          for (let i = 0; i < n.ops.length; i++) {
+            const b = evalE(n.rest[i]); const op = n.ops[i]; let r;
+            curLine = n.line;
+            if (op === '==') r = eq(a, b);
+            else if (op === '!=') r = !eq(a, b);
+            else if (op === 'is') r = a === b || (a === null && b === null);
+            else if (op === 'is not') r = !(a === b);
+            else if (op === 'in' || op === 'not in') {
+              let has;
+              if (typeof b === 'string') { if (typeof a !== 'string') throw err('TypeError', `'in <string>' requires string as left operand, not ${typeName(a)}`); has = b.includes(a); }
+              else has = iterate(b).some(x => eq(x, a));
+              r = op === 'in' ? has : !has;
+            } else {
+              const c = compare(a, b);
+              if (Number.isNaN(c)) throw err('TypeError', `'${op}' not supported between instances of '${typeName(a)}' and '${typeName(b)}'`);
+              r = op === '<' ? c < 0 : op === '>' ? c > 0 : op === '<=' ? c <= 0 : c >= 0;
+            }
+            if (!r) return false;
+            a = b;
+          }
+          return true;
+        }
+        case 'sub': { const o = evalE(n.obj), i = evalE(n.idx); curLine = n.line; return index(o, i); }
+        case 'slice': {
+          const o = evalE(n.obj); curLine = n.line;
+          if (typeof o !== 'string' && !Array.isArray(o)) throw err('TypeError', `'${typeName(o)}' object is not subscriptable`);
+          const arr = typeof o === 'string' ? Array.from(o) : o;
+          const len = arr.length;
+          const step = n.c ? Number(toInt(evalE(n.c))) : 1;
+          if (step === 0) throw err('ValueError', 'slice step cannot be zero');
+          const norm = (x, d) => { if (x === null) return d; let v = Number(toInt(x)); if (v < 0) v += len; return step > 0 ? Math.min(Math.max(v, 0), len) : Math.min(Math.max(v, -1), len - 1); };
+          const a = norm(n.a ? evalE(n.a) : null, step > 0 ? 0 : len - 1);
+          const b = norm(n.b ? evalE(n.b) : null, step > 0 ? len : -1);
+          const res = [];
+          if (step > 0) for (let i = a; i < b; i += step) res.push(arr[i]);
+          else for (let i = a; i > b; i += step) res.push(arr[i]);
+          if (typeof o === 'string') return res.join('');
+          if (o.__tuple) res.__tuple = true;
+          return res;
+        }
+        case 'attr': {
+          const o = evalE(n.obj); curLine = n.line;
+          if (o && o.__module) {
+            if (n.name in o.attrs) return o.attrs[n.name];
+            throw err('AttributeError', `module '${o.__module}' has no attribute '${n.name}'`);
+          }
+          return { __method: `${n.name} of ${typeName(o)} object`, obj: o, name: n.name };
+        }
+        case 'call': {
+          const f = evalE(n.f);
+          const args = n.args.map(evalE);
+          const kwargs = n.kwargs.map(k => ({ name: k.name, v: evalE(k.v) }));
+          curLine = n.line; tick();
+          if (f && f.__method) return callMethod(f.obj, f.name, args);
+          if (f && (f.__builtin || f.call)) {
+            if (kwargs.length && f.__builtin !== 'print' && f.__builtin !== 'sorted') throw err('TypeError', `${f.__builtin || f.__type}() takes no keyword arguments`);
+            return (f.fn || f.call)(args, kwargs);
+          }
+          if (f && f.__type && !f.call) throw err('TypeError', `cannot create '${f.__type}' instances`);
+          throw err('TypeError', `'${typeName(f)}' object is not callable`);
+        }
+      }
+      throw err('SystemError', 'unknown node ' + n.k);
+    }
+    function assign(t, v) {
+      if (t.k === 'name') {
+        if (Object.prototype.hasOwnProperty.call(builtins, t.id) && !(t.id in env)) events.push({ type: 'shadow', name: t.id, line: curLine });
+        env[t.id] = v; return;
+      }
+      if (t.k === 'sub') {
+        const o = evalE(t.obj), i = evalE(t.idx);
+        if (Array.isArray(o) && !o.__tuple) {
+          if (typeof i !== 'bigint') throw err('TypeError', `list indices must be integers or slices, not ${typeName(i)}`);
+          let n = Number(i); if (n < 0) n += o.length;
+          if (n < 0 || n >= o.length) throw err('IndexError', 'list assignment index out of range');
+          o[n] = v; return;
+        }
+        throw err('TypeError', `'${typeName(o)}' object does not support item assignment`);
+      }
+      if (t.k === 'tuple') {
+        const vals = iterate(v);
+        if (vals.length !== t.items.length) throw err('ValueError', vals.length > t.items.length ? `too many values to unpack (expected ${t.items.length})` : `not enough values to unpack (expected ${t.items.length}, got ${vals.length})`);
+        t.items.forEach((x, i) => assign(x, vals[i]));
+      }
+    }
+    function execBlock(stmts) { for (const s of stmts) execS(s); }
+    function execS(s) {
+      curLine = s.line; tick();
+      switch (s.k) {
+        case 'expr': {
+          const v = evalE(s.e);
+          if (opts.repl && v !== null) write(repr(v) + '\n');
+          return;
+        }
+        case 'assign': { const v = evalE(s.value); for (const t of s.targets) { curLine = s.line; assign(t, v); } return; }
+        case 'aug': {
+          const cur = evalE(s.target); const v = evalE(s.value); curLine = s.line;
+          if (Array.isArray(cur) && !cur.__tuple && s.op === '+') { cur.push(...iterate(v)); return; }
+          assign(s.target, binop(s.op, cur, v)); return;
+        }
+        case 'pass': return;
+        case 'break': throw BREAK;
+        case 'continue': throw CONTINUE;
+        case 'import':
+          for (const nm of s.names) {
+            if (nm === 'this') { write(ZEN + '\n'); events.push({ type: 'zen' }); }
+            else if (nm === 'antigravity') { events.push({ type: 'antigravity' }); }
+            else if (modules[nm]) env[nm] = modules[nm]();
+            else if (['random', 'time', 'turtle', 'os', 'sys', 'datetime', 'string', 'statistics', 'tkinter', 'pygame', 'json', 'collections', 'itertools'].includes(nm))
+              throw new PyError('Unsupported', `Модуля «${nm}» у цьому навчальному тренажері немає (у справжньому Python він є). Тут доступні лише math, this та antigravity.`, curLine);
+            else throw err('ModuleNotFoundError', `No module named '${nm}'`);
+          }
+          return;
+        case 'if': {
+          if (truthy(evalE(s.test))) execBlock(s.body); else execBlock(s.orelse);
+          return;
+        }
+        case 'while': {
+          while (truthy(evalE(s.test))) {
+            try { execBlock(s.body); } catch (e) { if (e === BREAK) break; if (e === CONTINUE) continue; throw e; }
+            curLine = s.line; tick();
+          }
+          return;
+        }
+        case 'for': {
+          const items = iterate(evalE(s.iter));
+          let broke = false;
+          for (const it of items) {
+            if (s.targets.length === 1) env[s.targets[0]] = it;
+            else assign({ k: 'tuple', items: s.targets.map(id => ({ k: 'name', id })) }, it);
+            try { execBlock(s.body); } catch (e) { if (e === BREAK) { broke = true; break; } if (e === CONTINUE) continue; throw e; }
+          }
+          if (!broke && s.orelse) execBlock(s.orelse);
+          return;
+        }
+      }
+    }
+
+    let tree, srcLines = src.replace(/\r\n?/g, '\n').split('\n');
+    const result = { out, env, events, error: null, needInput: false };
+    try {
+      tree = parse(src);
+      execBlock(tree.body);
+    } catch (e) {
+      if (e instanceof NeedInput) { result.needInput = true; }
+      else if (e instanceof PyError) {
+        if (e.pyType !== 'Exit') result.error = { type: e.pyType, msg: e.pyMsg, line: e.line, code: (srcLines[(e.line || 1) - 1] || '').trim() };
+      } else if (e === BREAK || e === CONTINUE) {
+        result.error = { type: 'SyntaxError', msg: `'${e === BREAK ? 'break' : 'continue'}' outside loop`, line: curLine, code: (srcLines[curLine - 1] || '').trim() };
+      } else if (e instanceof RangeError) {
+        result.error = { type: 'RecursionError', msg: 'Занадто складний вираз', line: curLine, code: '' };
+      } else throw e;
+    }
+    return result;
+  }
+
+  function formatError(e) {
+    if (!e) return '';
+    if (['Unsupported', 'Timeout', 'OutputLimit'].includes(e.type)) return e.msg;
+    if (['SyntaxError', 'IndentationError'].includes(e.type)) {
+      return `  File "main.py", line ${e.line}\n    ${e.code}\n${e.type}: ${e.msg}`;
+    }
+    return `Traceback (most recent call last):\n  File "main.py", line ${e.line}, in <module>\n    ${e.code}\n${e.type}: ${e.msg}`;
+  }
+  function outputText(res) { return res.out.map(s => s.text).join(''); }
+
+  return { run, repr, str, formatError, outputText, typeName, tokenize };
+})();
+/* ===== Відсіки (місії) ===== */
+const norm = s => s.replace(/\r/g, '').split('\n').map(l => l.replace(/\s+$/, '')).join('\n').replace(/\n+$/, '');
+const outIs = exp => ctx => ctx.out === exp;
+const lastLine = ctx => { const ls = ctx.out.split('\n').filter(l => l.trim()); return ls.length ? ls[ls.length - 1].trim() : ''; };
+const count = (src, word) => (stripStrings(src).match(new RegExp('\\b' + word + '\\s*\\(', 'g')) || []).length;
+function stripStrings(src) { return src.replace(/#.*$/gm, '').replace(/'[^'\n]*'|"[^"\n]*"/g, "''"); }
+
+const MISSIONS = [
+  {
+    id: 'radio', name: 'Радіорубка', topic: 'Виведення: print()', slide: '12', kind: 'code',
+    story: 'Антена ціла, але передавач мовчить. Надішли на Землю перше повідомлення.',
+    task: 'Напиши програму, яка виводить рядок <b>Привіт, Земле!</b>',
+    expected: 'Привіт, Земле!',
+    starter: '# Напиши свою програму нижче\n',
+    checks: [
+      { label: 'Використано команду print()', fn: c => count(c.src, 'print') >= 1 },
+      { label: 'Виведено рядок «Привіт, Земле!»', fn: outIs('Привіт, Земле!'), diff: 'Привіт, Земле!' },
+    ],
+    hints: [
+      'Для виведення на екран є команда <code>print()</code>. Те, що треба вивести, пишемо в дужках.',
+      "Текст беремо в лапки: <code>print('...')</code>. Кома й знак оклику — теж частина тексту, тож вони мають бути всередині лапок.",
+    ],
+    solution: "print('Привіт, Земле!')",
+    learned: 'print() виводить на екран те, що записано в дужках; текст беремо в лапки.',
+  },
+  {
+    id: 'archive', name: 'Бортовий архів', topic: 'Історія Python', slide: '2–5', kind: 'choice',
+    story: 'Сонячна буря пошкодила пам’ять бортового комп’ютера. Віднови записи архіву — відповідай на запитання.',
+    items: [
+      { q: 'Як називають програму, що «перекладає» команди Python на мову, зрозумілу процесору, і одразу їх виконує?', options: ['Інтерпретатор', 'Драйвер', 'Браузер', 'Архіватор'], answer: 0,
+        explain: 'Інтерпретатор Python читає програму рядок за рядком і одразу виконує кожну команду.' },
+      { q: 'Хто створив мову Python?', options: ['Гвідо ван Россум', 'Білл Гейтс', 'Лінус Торвальдс', 'Ада Лавлейс'], answer: 0,
+        explain: 'Гвідо ван Россум із Нідерландів почав роботу над мовою на різдвяних канікулах наприкінці 1989 року.' },
+      { q: 'У якому році вийшла перша версія Python?', options: ['1971', '1991', '2001', '2008'], answer: 1,
+        explain: 'Перша публічна версія — 1991 рік. А Python 3, яким ми користуємося, вийшов у 2008 році.' },
+      { q: 'На честь чого назвали мову?', options: ['Змії пітона', 'Комедійного шоу «Летючий цирк Монті Пайтона»', 'Героя грецьких міфів', 'Першого комп’ютера Гвідо'], answer: 1,
+        explain: 'Гвідо любив британське комедійне шоу «Monty Python’s Flying Circus». Змія стала символом мови вже згодом.' },
+      { q: 'Яку версію Python використовують сьогодні?', options: ['Python 1', 'Python 2', 'Python 3', 'Python 10'], answer: 2,
+        explain: 'Python 3. Python 2 більше не підтримується.' },
+    ],
+    learned: 'Python створив Гвідо ван Россум у 1991 році; програми виконує інтерпретатор.',
+  },
+  {
+    id: 'decoder', name: 'Дешифратор', topic: 'Лапки й вирази', slide: '12', kind: 'choice',
+    story: 'Дешифратор показує команди, але не їхній результат. Передбач, що виведе кожна програма, — а потім подивишся, що виведе справжній Python.',
+    items: [
+      { code: 'print(2 + 3)', options: ['5', '2 + 3', '23', 'Помилка'], answer: 0, codeOpts: true,
+        explain: 'Вираз без лапок Python спочатку обчислює, а потім виводить результат.' },
+      { code: "print('2 + 3')", options: ['5', '2 + 3', "'2 + 3'", 'Помилка'], answer: 1, codeOpts: true,
+        explain: 'Текст у лапках виводиться як є. Самі лапки на екран не потрапляють.' },
+      { code: "print('Мені', 14, 'років')", options: ['Мені 14 років', 'Мені14років', "'Мені' 14 'років'", 'Мені, 14, років'], answer: 0, codeOpts: true,
+        explain: 'Кілька значень у print() розділяють комами, а на екрані між ними з’являється пробіл.' },
+      { code: "print('10', 10 * 2)", options: ['10 20', '1020', '20', '10 10 * 2'], answer: 0, codeOpts: true,
+        explain: "'10' — текст, тому виводиться як є. 10 * 2 — вираз, тому обчислюється: 20." },
+      { code: 'print(7 / 2)', options: ['3.5', '3,5', '3', 'Помилка'], answer: 0, codeOpts: true,
+        explain: 'Ділення / дає дробове число. Дробову частину Python відділяє крапкою, а не комою.' },
+    ],
+    learned: 'Текст у лапках виводиться як є, а вираз без лапок спочатку обчислюється.',
+  },
+  {
+    id: 'power', name: 'Енергоблок', topic: 'Арифметичні дії', slide: '13', kind: 'code',
+    story: 'Щоб налаштувати енергоблок, бортовому комп’ютеру треба знати, скільки секунд у добі.',
+    task: 'Нехай Python порахує сам: у добі 24 години, у годині 60 хвилин, у хвилині 60 секунд. Виведи результат обчислення.',
+    expected: '86400',
+    starter: '',
+    checks: [
+      { label: 'У програмі є множення *', fn: c => stripStrings(c.src).includes('*') },
+      { label: 'Готового числа 86400 у коді немає — рахує Python', fn: c => !c.src.includes('86400') && !c.src.includes('86 400') },
+      { label: 'Виведено 86400', fn: outIs('86400'), diff: '86400' },
+    ],
+    hints: [
+      'Множення в Python позначають зірочкою <code>*</code>.',
+      'Запиши весь вираз просто в print(): <code>print(24 * ...)</code>',
+    ],
+    solution: 'print(24 * 60 * 60)',
+    learned: 'Python — суперкалькулятор: + - * / і дужки працюють, як у математиці.',
+  },
+  {
+    id: 'storage', name: 'Склад батарей', topic: 'Ділення // та остача %', slide: '13', kind: 'code',
+    story: 'На складі 17 запасних батарей. Їх треба порівну розподілити між 5 відсіками, а те, що залишиться, покласти в резерв.',
+    task: 'Виведи в одному рядку два числа: скільки батарей отримає кожен відсік і скільки залишиться в резерві. Обидва числа має обчислити Python.',
+    expected: '3 2',
+    starter: '',
+    checks: [
+      { label: 'Використано цілочисельне ділення //', fn: c => stripStrings(c.src).includes('//') },
+      { label: 'Використано остачу від ділення %', fn: c => stripStrings(c.src).includes('%') },
+      { label: 'Виведено «3 2»', fn: outIs('3 2'), diff: '3 2' },
+    ],
+    hints: [
+      '<code>//</code> дає цілу частину від ділення, <code>%</code> — остачу. Наприклад, 7 // 2 → 3, а 7 % 2 → 1.',
+      'Два значення в одному print() розділяй комою: <code>print(17 // 5, ...)</code>',
+    ],
+    solution: 'print(17 // 5, 17 % 5)',
+    learned: '// — ціла частина від ділення, % — остача.',
+  },
+  {
+    id: 'fuel', name: 'Паливний бак', topic: 'Змінні', slide: '14', kind: 'code',
+    story: 'Датчик пального зламався. Відтепер облік палива ведемо в змінній.',
+    task: '1. Створи змінну <code>fuel</code> зі значенням 100.<br>2. Двигун спалив 35 одиниць — зменш значення змінної на 35.<br>3. Виведи значення <code>fuel</code>.',
+    expected: '65',
+    starter: '',
+    checks: [
+      { label: 'Створено змінну fuel зі значенням 100', fn: c => /(^|\n)\s*fuel\s*=\s*100\b/.test(c.src) },
+      { label: 'Значення зменшено виразом (fuel = fuel - 35)', fn: c => /fuel\s*(-=\s*35\b|=\s*fuel\s*-\s*35\b)/.test(c.src) },
+      { label: 'Виведено 65', fn: c => outIs('65')(c) && c.res.env.fuel === 65n, diff: '65' },
+    ],
+    hints: [
+      'Присвоєння: <code>ім’я = значення</code>. Наприклад, <code>fuel = 100</code> — «поклади 100 у коробку з наліпкою fuel».',
+      'Щоб зменшити значення: <code>fuel = fuel - 35</code> — візьми те, що лежить у коробці, відніми 35 і поклади назад. Потім <code>print(fuel)</code>.',
+    ],
+    solution: 'fuel = 100\nfuel = fuel - 35\nprint(fuel)',
+    learned: 'Змінна — «коробка» з ім’ям. Знак = означає «поклади в коробку», а не «дорівнює».',
+  },
+  {
+    id: 'scanner', name: 'Сканер вантажу', topic: 'Типи даних', slide: '15', kind: 'types',
+    story: 'Автоматичний сканер мав сортувати контейнери за типом даних, але згорів. Сортуй вручну!',
+    task: 'Визнач тип кожного значення. Щоб відновити відсік, потрібно щонайменше 8 правильних відповідей із 10.',
+    learned: 'int — цілі числа, float — дробові, str — текст у лапках, bool — True або False.',
+  },
+  {
+    id: 'airlock', name: 'Шлюз', topic: 'Введення: input()', slide: '16', kind: 'code',
+    story: 'Шлюз відчиняється лише тим, хто представиться.',
+    task: 'Напиши програму, яка запитує ім’я за допомогою <code>input()</code> і вітається, наприклад: <b>Привіт, Марко</b> (замість Марко — ім’я, яке ввели).',
+    expected: [['Як тебе звати? ', 'out'], ['Марко', 'in'], ['\nПривіт, Марко', 'out']],
+    tests: [{ inputs: ['Марко'] }, { inputs: ['Оля'] }, { inputs: ['Святослав'] }],
+    inputsNote: 'Під час перевірки програма отримає ім’я <b>Марко</b>, а потім ще кілька інших імен. Текст запитання можеш написати свій.',
+    starter: '',
+    checks: [
+      { label: 'Використано input()', fn: c => count(c.src, 'input') >= 1 },
+      { label: 'Останній рядок вітається з введеним ім’ям', fn: c => { const l = lastLine(c); return /^привіт/i.test(l) && l.includes(c.inputs[0]); } },
+    ],
+    otherDataLabel: 'Працює й для інших імен (Оля, Святослав)',
+    hints: [
+      "<code>name = input('Як тебе звати? ')</code> — те, що введе користувач, потрапить у змінну name.",
+      "Виведи привітання і змінну через кому: <code>print('Привіт,', name)</code>",
+    ],
+    solution: "name = input('Як тебе звати? ')\nprint('Привіт,', name)",
+    learned: 'input() отримує дані, введені з клавіатури, і повертає їх як рядок.',
+  },
+  {
+    id: 'engine', name: 'Двигун', topic: 'Перетворення: int()', slide: '16', kind: 'code',
+    story: 'Програма розрахунку ресурсу двигуна завершується з помилкою. Знайди причину й виправ програму.',
+    task: 'Запусти програму, прочитай повідомлення про помилку й виправ її. Програма має правильно рахувати, скільки років буде людині через 5 років.',
+    expected: [['Скільки тобі років? ', 'out'], ['14', 'in'], ['\nЧерез 5 років тобі буде 19', 'out']],
+    tests: [{ inputs: ['14'] }, { inputs: ['30'] }, { inputs: ['9'] }],
+    inputsNote: 'Під час перевірки програма отримає число <b>14</b>, а потім ще кілька інших чисел.',
+    starter: "age = input('Скільки тобі років? ')\nprint('Через 5 років тобі буде', age + 5)\n",
+    checks: [
+      { label: 'Програма працює без помилок', fn: c => !c.res.error },
+      { label: 'Введене значення перетворено на число за допомогою int()', fn: c => count(c.src, 'int') >= 1 },
+      { label: 'Виведено правильний вік', fn: c => lastLine(c) === 'Через 5 років тобі буде ' + (parseInt(c.inputs[0], 10) + 5) },
+    ],
+    otherDataLabel: 'Працює й для інших чисел (30, 9)',
+    hints: [
+      "input() завжди повертає рядок: '14' — це текст, а не число. Текст і число скласти не можна — звідси TypeError.",
+      "Перетвори введене на ціле число: <code>age = int(input('Скільки тобі років? '))</code>",
+    ],
+    solution: "age = int(input('Скільки тобі років? '))\nprint('Через 5 років тобі буде', age + 5)",
+    learned: 'Щоб рахувати з введеними даними, перетворюй їх: int() — ціле число, float() — дробове.',
+  },
+  {
+    id: 'repair', name: 'Ремонтний відсік', topic: 'Типові помилки', slide: '19', kind: 'code',
+    story: 'Після бурі в програмах станції з’явилися помилки. Полагодь чотири програми — кожну треба запустити й виправити.',
+    steps: [
+      { task: 'Програма має вивести <b>Системи в нормі</b>.', expected: 'Системи в нормі', starter: "Print('Системи в нормі')\n",
+        hint: 'Прочитай останній рядок помилки: Python підказує, як правильно написати команду. Команди пишуться малими літерами.', solution: "print('Системи в нормі')" },
+      { task: 'Програма має вивести <b>Готово</b>.', expected: 'Готово', starter: 'print(Готово)\n',
+        hint: 'Без лапок Python вважає слово Готово ім’ям змінної, якої не існує. Текст треба взяти в лапки.', solution: "print('Готово')" },
+      { task: 'Програма має вивести <b>Тиск у нормі</b>.', expected: 'Тиск у нормі', starter: "print('Тиск у нормі)\n",
+        hint: 'Лапки відкрито, але не закрито. Текст має починатися й закінчуватися однаковими лапками.', solution: "print('Тиск у нормі')" },
+      { task: 'Температура в теплиці — 2,5 градуса, і її треба підняти на 1. Програма має вивести <b>3.5</b>, але виводить два числа.', expected: '3.5', starter: 'print(2,5 + 1)\n',
+        hint: 'Помилки немає, але результат не той: кома розділяє два різні значення. Дробову частину в Python відділяють крапкою.', solution: 'print(2.5 + 1)' },
+    ],
+    learned: 'Червоний текст — не катастрофа, а підказка: тип помилки (NameError, SyntaxError) показує причину.',
+  },
+  {
+    id: 'lights', name: 'Сигнальні вогні', topic: 'Цикл for', slide: '17', kind: 'code',
+    story: 'Увімкни сигнальні вогні: вони мають блимнути п’ять разів, щоб їх помітили із Землі.',
+    task: 'За допомогою циклу <code>for</code> виведи слово <b>Сигнал!</b> п’ять разів, кожне з нового рядка. Команда print() у програмі має бути лише одна.',
+    expected: 'Сигнал!\nСигнал!\nСигнал!\nСигнал!\nСигнал!',
+    starter: '',
+    checks: [
+      { label: 'Використано цикл for … in range(…)', fn: c => /\bfor\b[\s\S]*\bin\s+range\s*\(/.test(stripStrings(c.src)) },
+      { label: 'Команда print() у програмі лише одна', fn: c => count(c.src, 'print') === 1 },
+      { label: 'Виведено «Сигнал!» 5 разів', fn: outIs('Сигнал!\nСигнал!\nСигнал!\nСигнал!\nСигнал!'), diff: 'Сигнал!\nСигнал!\nСигнал!\nСигнал!\nСигнал!' },
+    ],
+    hints: [
+      '<code>for i in range(5):</code> — повторити 5 разів. Двокрапка в кінці обов’язкова.',
+      "Команду, яку треба повторювати, пиши з відступом 4 пробіли (клавіша Tab):\n<code>for i in range(5):\n    print('Сигнал!')</code>",
+    ],
+    solution: "for i in range(5):\n    print('Сигнал!')",
+    learned: 'for i in range(n): повторює команди з відступом n разів.',
+  },
+  {
+    id: 'launch', name: 'Стартовий майданчик', topic: 'Цикл for і змінна циклу', slide: '17', kind: 'code',
+    story: 'Остання перевірка — запуск вантажної капсули на Землю. Бортовий комп’ютер має вести зворотний відлік.',
+    task: 'Виведи числа від 10 до 1 (кожне з нового рядка), а потім слово <b>Старт!</b>. Використай цикл for — без десяти окремих print().',
+    expected: '10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nСтарт!',
+    starter: '',
+    checks: [
+      { label: 'Використано цикл for', fn: c => /\bfor\b/.test(stripStrings(c.src)) },
+      { label: 'Команд print() не більше двох', fn: c => count(c.src, 'print') <= 2 },
+      { label: 'Виведено відлік 10 … 1 і «Старт!»', fn: outIs('10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nСтарт!'), diff: '10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nСтарт!' },
+    ],
+    hints: [
+      'range(10) дає числа 0, 1, 2, …, 9 — їх по черзі отримує змінна i. Якщо відняти кожне від 10, вийде 10, 9, …, 1.',
+      "Усередині циклу: <code>print(10 - i)</code>. А <code>print('Старт!')</code> — уже після циклу, без відступу.",
+    ],
+    solution: "for i in range(10):\n    print(10 - i)\nprint('Старт!')",
+    learned: 'Змінна циклу i на кожному кроці отримує наступне число з range() — і її можна використовувати в обчисленнях.',
+  },
+];
+
+const TYPE_POOL = [
+  ['14', 'int'], ["'14'", 'str'], ['3.5', 'float'], ['True', 'bool'], ['-5', 'int'], ["'3.5'", 'str'], ['False', 'bool'],
+  ['-0.25', 'float'], ["'True'", 'str'], ['0', 'int'], ['2.0', 'float'], ["'9-Б'", 'str'], ['100', 'int'], ['1.65', 'float'], ["'Привіт'", 'str'], ['2026', 'int'],
+];
+const TYPE_INFO = {
+  int: { title: 'int', sub: 'ціле число', why: 'Ціле число без крапки й без лапок — це int.' },
+  float: { title: 'float', sub: 'дробове', why: 'Є крапка — отже, це дробове число float. Навіть 2.0!' },
+  str: { title: 'str', sub: 'рядок', why: 'Значення в лапках — це рядок str, навіть якщо всередині число чи True.' },
+  bool: { title: 'bool', sub: 'логічне', why: 'True і False (з великої літери й без лапок) — логічні значення bool.' },
+};
+
+const EXAMPLES = [
+  ['Привіт, світ', "print('Привіт, світ!')\nprint('Мені', 14, 'років')\nprint(2 + 3)\nprint('2 + 3')\n"],
+  ['Суперкалькулятор', "print(7 + 2, 7 - 2, 7 * 2, 7 / 2)\nprint(7 // 2, 7 % 2, 7 ** 2)\nprint((2 + 3) * 4)\nprint(2 ** 100)\n"],
+  ['Змінні', "name = 'Оля'\nage = 14\nheight = 1.65\nprint(name, age)\nage = age + 1\nprint(age)\n"],
+  ['Типи даних', "print(type(14))\nprint(type('14'))\nprint(type(3.5))\nprint(type(True))\n"],
+  ['Діалог з input()', "name = input('Як тебе звати? ')\nprint('Привіт,', name)\nage = int(input('Скільки тобі років? '))\nprint('Через 5 років тобі буде', age + 5)\n"],
+  ['Цикл for', "for i in range(3):\n    print('Python — це цікаво!')\n\nfor i in range(5):\n    print(i)\n"],
+  ['Генератор супергероя', "print('Генератор імені супергероя')\ncolor = input('Улюблений колір: ')\nanimal = input('Улюблена тварина: ')\nprint('Ти —', color, animal)\n"],
+  ['Пасхалка', 'import this\n'],
+];
+/* ===== Стан ===== */
+const STORE_KEY = 'python-station-v1';
+const S = (() => {
+  const base = { name: '', done: {}, code: {}, prog: {}, step: {}, unlockAll: false, celebrated: false };
+  try { const raw = localStorage.getItem(STORE_KEY); if (raw) return Object.assign(base, JSON.parse(raw)); } catch (e) {}
+  return base;
+})();
+let saveTimer = null;
+function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {} }, 150); }
+function saveNow() { try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {} }
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+const app = $('#app');
+let justLit = null;
+
+const doneCount = () => MISSIONS.filter(m => S.done[m.id]).length;
+const starsTotal = () => MISSIONS.reduce((a, m) => a + (S.done[m.id] ? S.done[m.id].stars : 0), 0);
+const isUnlocked = i => S.unlockAll || i === 0 || !!S.done[MISSIONS[i - 1].id] || !!S.done[MISSIONS[i].id];
+const nextIndex = () => MISSIONS.findIndex(m => !S.done[m.id]);
+const starStr = n => '★'.repeat(n) + `<span class="off">${'★'.repeat(3 - n)}</span>`;
+const prog = id => (S.prog[id] = S.prog[id] || { hints: 0, fails: 0, sol: false, mistakes: 0 });
+
+function updateTopbar() {
+  const n = doneCount();
+  $('#cells').innerHTML = MISSIONS.map(m => `<i class="${S.done[m.id] ? 'on' : ''}"></i>`).join('');
+  $('#progressText').innerHTML = `<span class="pt-long">Відновлено ${n} з ${MISSIONS.length}</span><span class="pt-short" aria-hidden="true">${n}/${MISSIONS.length}</span>`;
+  $('#starsTotal').textContent = `★ ${starsTotal()}`;
+  $('#starsTotal').setAttribute('aria-label', `Зірок: ${starsTotal()}`);
+}
+
+/* ===== Маршрутизація ===== */
+function route() {
+  closeModal();
+  const hsh = location.hash || '#/';
+  const m = /^#\/m\/(\w+)/.exec(hsh);
+  updateTopbar();
+  window.scrollTo(0, 0);
+  if (m) {
+    const i = MISSIONS.findIndex(x => x.id === m[1]);
+    if (i >= 0 && isUnlocked(i)) return renderMission(i);
+    location.hash = '#/'; return;
+  }
+  if (hsh.startsWith('#/sandbox')) return renderSandbox();
+  renderHome();
+}
+window.addEventListener('hashchange', route);
+
+/* ===== Станція (SVG) ===== */
+function stationSVG() {
+  const W = 1200, H = 400, spineY = 190;
+  const nx = nextIndex();
+  let stars = '';
+  let seed = 7;
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < 70; i++) stars += `<circle cx="${(rnd() * W).toFixed(0)}" cy="${(rnd() * H).toFixed(0)}" r="${(rnd() * 1.4 + .4).toFixed(1)}" fill="#CFE0D6" opacity="${(rnd() * .5 + .2).toFixed(2)}"/>`;
+  const frac = doneCount() / MISSIONS.length;
+  const panel = (x, side) => {
+    let s = `<rect x="${side === 'l' ? x + 36 : x - 4}" y="${spineY - 4}" width="12" height="28" fill="#3B5A4B"/>`;
+    const cols = 3, rows = 4;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c, lit = idx < Math.round(frac * rows * cols);
+      const px = x + c * 12 - (side === 'l' ? 0 : 0), py = 80 + r * 64 + (r >= 2 ? 32 : 0);
+      s += `<rect x="${px}" y="${py}" width="10" height="56" rx="1.5" fill="${lit ? '#E0A526' : '#28473A'}" stroke="#4A6E5D" stroke-width="1"/>`;
+    }
+    return s;
+  };
+  let mods = '';
+  MISSIONS.forEach((m, i) => {
+    const col = Math.floor(i / 2), top = i % 2 === 0;
+    const x = 118 + col * 166, w = 136, hh = 96;
+    const y = top ? spineY - 34 - hh : spineY + 54;
+    const done = !!S.done[m.id], locked = !isUnlocked(i), next = i === nx && !locked;
+    const cls = ['mod', done ? 'done' : '', locked ? 'locked' : '', next ? 'next' : '', justLit === m.id ? 'just-lit' : ''].join(' ');
+    const fill = done ? '#2F7D5A' : '#20372D';
+    const stroke = done ? '#7FCFA2' : '#3E5F50';
+    const win = done ? '#F3D56B' : '#16291F';
+    const neck = top ? `<rect x="${x + w / 2 - 9}" y="${y + hh}" width="18" height="${spineY - y - hh}" fill="#3B5A4B"/>` : `<rect x="${x + w / 2 - 9}" y="${spineY + 20}" width="18" height="${y - spineY - 20}" fill="#3B5A4B"/>`;
+    const label = esc(m.name);
+    const lblY = top ? y - 12 : y + hh + 26;
+    mods += `<g class="${cls}" data-i="${i}" tabindex="${locked ? -1 : 0}" role="button" aria-label="Відсік ${i + 1}: ${label}${done ? ', відновлено' : locked ? ', закрито' : ''}">
+      ${neck}
+      <rect class="glow" x="${x - 10}" y="${y - 10}" width="${w + 20}" height="${hh + 20}" rx="22" fill="#F3D56B" opacity="${done ? .18 : 0}"/>
+      <rect class="hull" x="${x}" y="${y}" width="${w}" height="${hh}" rx="16" fill="${fill}" stroke="${stroke}" stroke-width="2" ${locked ? 'stroke-dasharray="6 5"' : ''}/>
+      <text class="num" x="${x + 16}" y="${y + 34}" fill="${done ? '#FFFFFF' : locked ? '#5E7D6E' : '#E8EFEA'}">${i + 1}</text>
+      ${[0, 1, 2].map(k => `<circle cx="${x + 30 + k * 38}" cy="${y + 64}" r="11" fill="${win}" stroke="${done ? '#FFF3C4' : '#3E5F50'}" stroke-width="2"/>`).join('')}
+      ${next ? `<circle class="beacon" cx="${x + w - 18}" cy="${y + 20}" r="6" fill="#E0A526"/>` : ''}
+      ${done ? `<text x="${x + w - 14}" y="${y + 30}" text-anchor="end" font-size="16" fill="#F3D56B">${'★'.repeat(S.done[m.id].stars)}</text>` : ''}
+      <text class="lbl" x="${x + w / 2}" y="${lblY}" text-anchor="middle" opacity="${locked ? .5 : 1}">${label}</text>
+    </g>`;
+  });
+  return `<svg class="station" viewBox="0 0 ${W} ${H}" role="group" aria-label="Схема станції: відсіки">
+    ${stars}
+    ${panel(16, 'l')}${panel(W - 52, 'r')}
+    <rect x="62" y="${spineY}" width="${W - 124}" height="20" rx="6" fill="#3B5A4B"/>
+    <rect x="62" y="${spineY + 8}" width="${(W - 124) * frac}" height="4" rx="2" fill="#E0A526"/>
+    ${mods}
+  </svg>`;
+}
+
+/* ===== Головний екран ===== */
+function renderHome() {
+  const n = doneCount(), nx = nextIndex();
+  const status = n === 0 ? 'Живлення немає в жодному відсіку. Почни з радіорубки.'
+    : n === MISSIONS.length ? 'Усі відсіки працюють. Станцію відновлено!'
+      : `Працює ${n} з ${MISSIONS.length} відсіків. Наступний: «${MISSIONS[nx].name}».`;
+  app.innerHTML = '';
+  const hero = h(`<section class="hero">
+    <div class="hero-head">
+      <h1>${S.name ? 'Станція «Пітон-1», чергує ' + esc(S.name) : 'Станція «Пітон-1»'}</h1>
+      <p class="status">${status}</p>
+    </div>
+    ${stationSVG()}
+  </section>`);
+  app.append(hero);
+  if (!S.name) {
+    const intro = h(`<div class="intro"><div class="intro-card">
+      <h2>Тривога на орбіті</h2>
+      <p>Після сонячної бурі станція «Пітон-1» залишилася без живлення. Бортовий комп’ютер уцілів, але тепер розуміє лише мову Python.</p>
+      <p>Ти — черговий кадет. Відновлюй відсіки один за одним: у кожному треба написати чи полагодити невелику програму.</p>
+      <form class="intro-form">
+        <label for="cadet">Як тебе звати, кадете?</label>
+        <input id="cadet" maxlength="40" autocomplete="off" placeholder="Твоє ім’я" required>
+        <button class="btn amber" type="submit">Заступити на чергування</button>
+      </form>
+    </div></div>`);
+    hero.append(intro);
+    intro.querySelector('form').addEventListener('submit', e => {
+      e.preventDefault();
+      const v = $('#cadet').value.trim();
+      if (!v) return;
+      S.name = v; saveNow(); renderHome();
+    });
+    setTimeout(() => { const c = $('#cadet'); if (c && window.innerWidth > 700) c.focus(); }, 50);
+  }
+  hero.querySelectorAll('.mod').forEach(g => {
+    const go = () => { const i = +g.dataset.i; if (isUnlocked(i)) location.hash = '#/m/' + MISSIONS[i].id; else toast('Цей відсік відкриється, коли відновиш попередній.'); };
+    g.addEventListener('click', go);
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+  justLit = null;
+
+  const list = h(`<section>
+    <div class="missions-head"><h2>Відсіки станції</h2><p>Відсіки відкриваються по черзі. Зірки: ★★★ — без підказок, ★★ — з підказками, ★ — з розв’язком.</p></div>
+    <ol class="mlist"></ol>
+  </section>`);
+  const ol = list.querySelector('ol');
+  MISSIONS.forEach((m, i) => {
+    const done = S.done[m.id], locked = !isUnlocked(i), next = i === nx && !locked;
+    const right = done ? `<span class="st" aria-label="${done.stars} з 3 зірок">${starStr(done.stars)}</span>` : next ? '<span class="pill-next">Далі</span>' : locked ? 'закрито' : '';
+    const li = h(`<li class="${done ? 'done' : ''} ${next ? 'next' : ''}"><button class="mrow" type="button" ${locked ? 'disabled' : ''}>
+      <span class="mnum">${i + 1}</span>
+      <span><span class="mname">${esc(m.name)}</span><span class="mtopic">${esc(m.topic)}</span></span>
+      <span class="mright">${right}</span></button></li>`);
+    li.querySelector('button').addEventListener('click', () => { location.hash = '#/m/' + m.id; });
+    ol.append(li);
+  });
+  app.append(list);
+  if (n === MISSIONS.length && !S.celebrated) { S.celebrated = true; saveNow(); setTimeout(showCertificate, 600); }
+}
+
+/* ===== Редактор коду ===== */
+const KW = new Set(['for', 'in', 'while', 'if', 'elif', 'else', 'break', 'continue', 'pass', 'import', 'and', 'or', 'not', 'True', 'False', 'None', 'def', 'return', 'is', 'from', 'as', 'class', 'lambda']);
+const BI = new Set(['print', 'input', 'int', 'float', 'str', 'bool', 'type', 'range', 'len', 'abs', 'round', 'min', 'max', 'sum', 'list', 'sorted']);
+function highlight(src) {
+  const re = /(#.*$)|('(?:[^'\\\n]|\\.)*'?|"(?:[^"\\\n]|\\.)*"?)|(\b\d[\d_]*(?:\.\d*)?(?:[eE][+-]?\d+)?\b)|([\p{L}_][\p{L}\p{N}_]*)|([^\s\p{L}\p{N}_#'"]+)/gmu;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const t = m[0];
+    if (m[1]) out += `<span class="tk-com">${esc(t)}</span>`;
+    else if (m[2]) out += `<span class="tk-str">${esc(t)}</span>`;
+    else if (m[3]) out += `<span class="tk-num">${esc(t)}</span>`;
+    else if (m[4]) out += (KW.has(t) || BI.has(t)) ? `<span class="tk-kw">${esc(t)}</span>` : esc(t);
+    else out += `<span class="tk-op">${esc(t)}</span>`;
+    last = m.index + t.length;
+  }
+  return out + esc(src.slice(last)) + '\n';
+}
+function makeEditor(container, value, onChange, onRun, opts = {}) {
+  const ed = h(`<div class="editor ${opts.tall ? 'tall' : ''}">
+    <div class="gutter" aria-hidden="true"></div>
+    <div class="code-area">
+      <pre aria-hidden="true"><code></code></pre>
+      <textarea spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Редактор коду Python"></textarea>
+      <span class="ed-hint">Tab — відступ · Ctrl+Enter — запуск</span>
+    </div></div>`);
+  container.append(ed);
+  const ta = ed.querySelector('textarea'), pre = ed.querySelector('pre'), code = ed.querySelector('code'), gut = ed.querySelector('.gutter');
+  let escaped = false;
+  const paint = () => {
+    code.innerHTML = highlight(ta.value);
+    const n = ta.value.split('\n').length;
+    if (gut.childElementCount !== n) gut.innerHTML = Array.from({ length: n }, (_, i) => `<div>${i + 1}</div>`).join('');
+    sync();
+  };
+  const sync = () => { pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; gut.scrollTop = ta.scrollTop; };
+  const insert = (text) => {
+    ta.focus();
+    if (!document.execCommand || !document.execCommand(text === '' ? 'delete' : 'insertText', false, text)) {
+      const s = ta.selectionStart, e = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+      ta.selectionStart = ta.selectionEnd = s + text.length;
+      ta.dispatchEvent(new Event('input'));
+    }
+  };
+  ta.value = value || '';
+  ta.addEventListener('input', () => { paint(); onChange && onChange(ta.value); });
+  ta.addEventListener('scroll', sync);
+  ta.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey)) || e.key === 'F5') { e.preventDefault(); onRun && onRun(); return; }
+    if (e.key === 'Escape') { escaped = true; return; }
+    if (e.key === 'Tab') {
+      if (escaped) { escaped = false; return; }
+      e.preventDefault();
+      const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
+      const ls = v.lastIndexOf('\n', s - 1) + 1;
+      if (s !== en && v.slice(s, en).includes('\n') || e.shiftKey) {
+        const le = v.indexOf('\n', en - (en > s && v[en - 1] === '\n' ? 1 : 0)); const lend = le < 0 ? v.length : le;
+        const block = v.slice(ls, lend);
+        const nb = e.shiftKey ? block.replace(/^ {1,4}/gm, '') : block.replace(/^/gm, '    ');
+        ta.setSelectionRange(ls, lend); insert(nb); ta.setSelectionRange(ls, ls + nb.length);
+      } else insert('    ');
+      return;
+    }
+    escaped = false;
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const s = ta.selectionStart, v = ta.value;
+      const ls = v.lastIndexOf('\n', s - 1) + 1;
+      const line = v.slice(ls, s);
+      let ind = (/^ */.exec(line) || [''])[0];
+      if (/:\s*(#.*)?$/.test(line)) ind += '    ';
+      insert('\n' + ind);
+      return;
+    }
+    if (e.key === 'Backspace' && ta.selectionStart === ta.selectionEnd) {
+      const s = ta.selectionStart, v = ta.value; const ls = v.lastIndexOf('\n', s - 1) + 1;
+      const before = v.slice(ls, s);
+      if (before.length >= 4 && /^ +$/.test(before) && before.length % 4 === 0) { e.preventDefault(); ta.setSelectionRange(s - 4, s); insert(''); }
+    }
+  });
+  paint();
+  return { ta, get value() { return ta.value; }, set value(v) { ta.value = v; paint(); onChange && onChange(v); }, focus: () => ta.focus() };
+}
+
+/* ===== Консоль ===== */
+function explainError(e, events, src) {
+  if (!e) {
+    const sh = events && events.find(x => x.type === 'shadow');
+    return sh ? `<b>Увага</b>Значення покладено у змінну з ім’ям <code>${esc(sh.name)}</code> — так звуть вбудовану команду, і тепер вона не працює. Обери інше ім’я змінної.` : '';
+  }
+  const m = e.msg, t = e.type;
+  const code = e.code || '';
+  if (t === 'NameError') {
+    const name = (/name '([^']+)'/.exec(m) || [])[1] || '';
+    const dym = (/Did you mean: '([^']+)'/.exec(m) || [])[1];
+    if (dym && dym.toLowerCase() === name.toLowerCase()) return `<b>Python не знає імені «${esc(name)}»</b>Великі й малі літери в Python різні. Команду треба писати так: <code>${esc(dym)}</code>.`;
+    if (dym) return `<b>Python не знає імені «${esc(name)}»</b>Можливо, тут помилка в написанні і мало бути <code>${esc(dym)}</code>.`;
+    return `<b>Python не знає імені «${esc(name)}»</b>Якщо це текст — візьми його в лапки: <code>'${esc(name)}'</code>. Якщо це змінна — перевір, що її створено вище і що ім’я написано так само.`;
+  }
+  if (t === 'SyntaxError') {
+    if (m.startsWith('unterminated string')) {
+      if (/\p{L}'\p{L}/u.test(code)) return '<b>Лапки не закрито</b>Схоже, в тексті є апостроф (як у слові «зв’язок»): він закриває рядок раніше, ніж треба. Візьми такий текст у подвійні лапки: <code>"зв\'язок"</code>.';
+      return '<b>Лапки не закрито</b>Текст має починатися й закінчуватися однаковими лапками: <code>\'...\'</code> або <code>"..."</code>.';
+    }
+    if (m.startsWith('invalid character')) return '<b>Незвичний символ</b>Python розуміє лише прямі лапки <code>\'</code> або <code>"</code>. «Ялинки» чи «криві» лапки з’являються, якщо ввімкнено українську розкладку або текст скопійовано з документа. Перемкни розкладку на англійську.';
+    if (m.includes('was never closed')) return '<b>Дужку не закрито</b>Кожна відкрита дужка <code>(</code> має свою пару <code>)</code>. Порахуй дужки в рядку.';
+    if (m.startsWith('unmatched') || m.startsWith('closing parenthesis')) return '<b>Зайва дужка</b>Закривних дужок більше, ніж відкривних, або вони не до пари.';
+    if (m === "expected ':'") return '<b>Бракує двокрапки</b>Заголовок циклу <code>for</code> (а також <code>if</code>) закінчується двокрапкою <code>:</code>.';
+    if (m.includes('forgot a comma')) return '<b>Бракує коми</b>Схоже, між значеннями в дужках бракує коми.';
+    if (m.includes("cannot assign")) return '<b>Неправильне присвоєння</b>Ліворуч від <code>=</code> має стояти ім’я змінної, а праворуч — значення.';
+    if (m.includes("'==' or ':='")) return '<b>= замість ==</b>Для порівняння в умовах пишуть <code>==</code>.';
+    if (m.includes('decimal literal')) return '<b>Ім’я не може починатися з цифри</b>Імена змінних починаються з літери або _: <code>x1</code>, а не <code>1x</code>.';
+    return '<b>Порушено правила запису</b>Python не розуміє цей рядок. Перевір дужки, лапки, коми й двокрапки.';
+  }
+  if (t === 'IndentationError') {
+    if (m.startsWith('expected an indented block')) return '<b>Потрібен відступ</b>Команди всередині циклу пишуть з відступом 4 пробіли (клавіша Tab). Саме відступ показує, що команда належить циклу.';
+    if (m === 'unexpected indent') return '<b>Зайвий відступ</b>Цей рядок починається з пробілів, хоча не належить жодному циклу. Прибери пробіли на початку рядка.';
+    return '<b>Відступи не збігаються</b>Рядки одного блоку мають мати однаковий відступ — 4 пробіли.';
+  }
+  if (t === 'TypeError') {
+    if (m.startsWith('can only concatenate str')) return '<b>Текст + число не додаються</b>Значення ліворуч від <code>+</code> — рядок (текст). Якщо воно прийшло з <code>input()</code>, перетвори його на число: <code>int(...)</code>.';
+    if (m.startsWith('unsupported operand') && m.includes("'str'")) return '<b>Число і текст не поєднуються</b>Один з доданків — рядок (текст). Перетвори його на число за допомогою <code>int()</code> або <code>float()</code>.';
+    if (m.includes('not callable')) return '<b>Це не команда</b>Дужки після імені означають виклик команди, а тут стоїть звичайне значення. Можливо, змінну названо так само, як команду.';
+    if (m.includes("can't multiply sequence")) return '<b>Текст можна множити лише на ціле число</b>Наприклад, <code>\'ха\' * 3</code> → хахаха.';
+    return '<b>Неправильний тип даних</b>Ця дія не підходить для такого типу значення. Перевір, де число, а де текст.';
+  }
+  if (t === 'ValueError') {
+    if (m.startsWith('invalid literal for int()')) return '<b>Це не ціле число</b><code>int()</code> не може перетворити такий текст на ціле число. Потрібні лише цифри — без пробілів, коми, крапки чи букв.';
+    if (m.startsWith('could not convert string to float')) return '<b>Це не число</b><code>float()</code> не може перетворити такий текст на число. Дробову частину відділяй крапкою: 3.5.';
+    return '';
+  }
+  if (t === 'ZeroDivisionError') return '<b>Ділення на нуль</b>На нуль ділити не можна — навіть Python’у.';
+  if (t === 'IndexError') return '<b>Такого номера немає</b>Нумерація починається з 0, а останній номер на 1 менший за довжину.';
+  return '';
+}
+function renderConsole(el, res, opts = {}) {
+  el.innerHTML = '';
+  if (opts.note) el.append(h(`<div class="sys">${esc(opts.note)}</div>`));
+  for (const seg of res.out) {
+    const sp = document.createElement('span');
+    sp.className = seg.kind === 'in' ? 'in' : '';
+    sp.textContent = seg.text;
+    el.append(sp);
+  }
+  if (res.error) {
+    const sp = document.createElement('span'); sp.className = 'err';
+    const txt = Py.formatError(res.error);
+    const prev = Py.outputText(res);
+    sp.textContent = (prev && !prev.endsWith('\n') ? '\n' : '') + txt;
+    el.append(sp);
+  }
+  const ex = explainError(res.error, res.events, opts.src);
+  if (ex) el.append(h(`<div class="explain">${ex}</div>`));
+  if (res.events && res.events.some(e => e.type === 'antigravity')) {
+    el.append(h(`<div class="sys">Злітаємо! Справжній Python відкрив би комікс xkcd про те, як Python допоміг полетіти: <a href="https://xkcd.com/353/" target="_blank" rel="noopener" style="color:var(--c-kw)">xkcd.com/353</a></div>`));
+  }
+  if (!res.out.length && !res.error && !res.needInput && !opts.quietEmpty) el.append(h('<span class="sys">Програма виконалась, але нічого не вивела.</span>'));
+  el.scrollTop = el.scrollHeight;
+}
+
+/* ===== Екран місії (код) ===== */
+function crumbs(i) {
+  const m = MISSIONS[i];
+  return h(`<div class="crumbs"><a class="back" href="#/"><span aria-hidden="true">‹</span> До станції</a><span class="where">Відсік ${i + 1} з ${MISSIONS.length}</span></div>`);
+}
+function briefHead(i) {
+  const m = MISSIONS[i];
+  return `<h1>${esc(m.name)}</h1>
+    <div class="tags"><span class="tag">${esc(m.topic)}</span><span class="tag slide">Слайд ${m.slide}</span></div>
+    <p class="story">${m.story}</p>`;
+}
+function renderMission(i) {
+  const m = MISSIONS[i];
+  app.innerHTML = '';
+  app.append(crumbs(i));
+  if (m.kind === 'choice') return renderChoice(i);
+  if (m.kind === 'types') return renderTypes(i);
+  renderCode(i);
+}
+function expectedHTML(exp) {
+  if (Array.isArray(exp)) return exp.map(([t, k]) => `<span class="${k === 'in' ? 'in' : ''}">${esc(t)}</span>`).join('');
+  return esc(exp);
+}
+function renderCode(i) {
+  const m = MISSIONS[i];
+  const p = prog(m.id);
+  const steps = m.steps;
+  let stepIdx = steps ? Math.min(S.step[m.id] || 0, steps.length - 1) : 0;
+  const cur = () => steps ? Object.assign({}, m, steps[stepIdx], {
+    checks: [{ label: 'Програма працює без помилок', fn: c => !c.res.error }, { label: 'Результат правильний', fn: outIs(steps[stepIdx].expected), diff: steps[stepIdx].expected }],
+    hints: [steps[stepIdx].hint],
+  }) : m;
+  const codeKey = () => steps ? m.id + ':' + stepIdx : m.id;
+
+  const wrap = h(`<div class="mission"><section class="brief"></section><section class="ide-col"></section></div>`);
+  app.append(wrap);
+  const brief = wrap.querySelector('.brief'), col = wrap.querySelector('.ide-col');
+
+  const ide = h(`<div class="ide">
+    <div class="ide-bar"><div class="dots"><i></i><i></i><i></i></div><span class="ide-title">main.py</span>
+      <div class="ide-actions"><button class="ghost" type="button" data-act="reset">Почати спочатку</button><button class="run" type="button" data-act="run">Запустити <kbd>F5</kbd></button></div></div>
+    <div class="ed-slot"></div>
+    <div class="console-head"><span>Оболонка — результат програми</span></div>
+    <div class="console" aria-live="polite"><span class="placeholder">Натисни «Запустити», щоб виконати програму.</span></div>
+  </div>`);
+  col.append(ide);
+  const consoleEl = ide.querySelector('.console');
+  let editor;
+
+  function drawBrief(checkState, verdict) {
+    const c = cur();
+    const stepBar = steps ? `<div class="block"><h3>Програма ${stepIdx + 1} з ${steps.length}</h3><div class="qdots">${steps.map((_, k) => `<i class="${k < stepIdx ? 'ok' : k === stepIdx ? 'cur' : ''}"></i>`).join('')}</div></div>` : '';
+    const checks = [...c.checks.map(x => x.label), ...(c.tests && c.tests.length > 1 ? [c.otherDataLabel] : [])];
+    const st = checkState || [];
+    const hintsShown = steps ? (p['h' + stepIdx] || 0) : p.hints;
+    const hintsHTML = c.hints.map((t, k) => k < hintsShown ? `<div class="hint-text">${t}</div>` : '').join('');
+    const canHint = hintsShown < c.hints.length;
+    const fails = steps ? (p['f' + stepIdx] || 0) : p.fails;
+    const showSol = fails >= 3 || hintsShown >= c.hints.length;
+    brief.innerHTML = `${briefHead(i)}${stepBar}
+      <div class="block"><h3>Завдання</h3><div class="task">${c.task}</div></div>
+      <div class="block"><h3>Очікуваний результат</h3><pre class="expected">${expectedHTML(c.expected)}</pre>${c.inputsNote ? `<div class="inputs-note">${c.inputsNote}</div>` : ''}</div>
+      <div class="block"><h3>Перевірки</h3><ul class="checks">${checks.map((l, k) => `<li class="${st[k] === true ? 'ok' : st[k] === false ? 'fail' : ''}">${esc(l)}</li>`).join('')}</ul>${verdict || ''}</div>
+      <div class="block hints"><h3>Підказки</h3>${hintsHTML}
+        ${canHint ? `<button class="hint-btn" type="button" data-act="hint">${hintsShown ? 'Ще одна підказка' : 'Показати підказку'}</button>` : ''}
+        ${showSol ? `<button class="sol-btn" type="button" data-act="sol">Показати розв’язок (залишиться 1 зірка)</button>` : ''}
+      </div>`;
+    brief.querySelector('[data-act="hint"]')?.addEventListener('click', () => {
+      if (steps) p['h' + stepIdx] = (p['h' + stepIdx] || 0) + 1; else p.hints++;
+      p.usedHint = true; save(); drawBrief(checkState, verdict);
+    });
+    brief.querySelector('[data-act="sol"]')?.addEventListener('click', () => {
+      p.sol = true; save();
+      editor.value = c.solution + '\n';
+      toast('Розв’язок вставлено в редактор. Розберись, як він працює, і натисни «Запустити».');
+      drawBrief(checkState, verdict);
+    });
+  }
+
+  function mountEditor() {
+    const slot = ide.querySelector('.ed-slot'); slot.innerHTML = '';
+    const c = cur();
+    const saved = S.code[codeKey()];
+    editor = makeEditor(slot, saved !== undefined ? saved : c.starter, v => { S.code[codeKey()] = v; save(); }, runIt);
+    consoleEl.innerHTML = '<span class="placeholder">Натисни «Запустити», щоб виконати програму.</span>';
+    drawBrief();
+  }
+
+  function evalChecks(c, src, res, inputs) {
+    const ctx = { src, res, out: norm(Py.outputText(res)), inputs: inputs || [] };
+    return c.checks.map(x => { try { return !!x.fn(ctx); } catch (e) { return false; } });
+  }
+
+  function runIt() {
+    const c = cur();
+    const src = editor.value;
+    const tests = c.tests || [{ inputs: [] }];
+    const res = Py.run(src, { inputs: tests[0].inputs });
+    renderConsole(consoleEl, res, { src });
+    if (res.needInput) {
+      consoleEl.append(h(`<div class="explain"><b>Програма чекає ще одне введення</b>У цьому завданні вводиться лише ${tests[0].inputs.length === 1 ? 'одне значення' : tests[0].inputs.length + ' значення'}. Перевір, скільки разів у програмі викликається <code>input()</code>.</div>`));
+    }
+    const st = evalChecks(c, src, res, tests[0].inputs);
+    let allOk = st.every(Boolean) && !res.needInput && !(res.error && res.error.type !== 'Exit');
+    let verdict = '';
+    if (tests.length > 1) {
+      let otherOk = null;
+      if (allOk) {
+        otherOk = true;
+        for (const t of tests.slice(1)) {
+          const r = Py.run(src, { inputs: t.inputs });
+          if (r.error || r.needInput || !evalChecks(c, src, r, t.inputs).every(Boolean)) { otherOk = false; verdict = `<div class="verdict bad">Для «${esc(tests[0].inputs[0])}» усе працює, а для «${esc(t.inputs[0])}» — ні. Схоже, значення вписане в програму вручну. Програма має використовувати те, що ввели.</div>`; break; }
+        }
+      }
+      st.push(otherOk);
+      allOk = allOk && otherOk === true;
+    }
+    if (!allOk) {
+      if (steps) p['f' + stepIdx] = (p['f' + stepIdx] || 0) + 1; else p.fails++;
+      save();
+      if (!verdict) {
+        const diffCheck = c.checks.findIndex((x, k) => x.diff && !st[k]);
+        if (res.error) verdict = '<div class="verdict bad">Програма завершилася з помилкою. Пояснення — під результатом у вікні оболонки.</div>';
+        else if (diffCheck >= 0 && st.slice(0, c.checks.length).filter(v => !v).length === 1) {
+          const got = norm(Py.outputText(res));
+          verdict = `<div class="verdict bad">Результат відрізняється від очікуваного. Порівняй уважно — кожен символ має значення.<div class="diff"><span>Очікувалось:</span><span>${esc(c.checks[diffCheck].diff)}</span><span>Отримано:</span><span>${got ? esc(got) : '(нічого)'}</span></div></div>`;
+        } else verdict = '<div class="verdict bad">Ще не все виконано — подивись, які перевірки не пройдено.</div>';
+      }
+      drawBrief(st, verdict);
+      return;
+    }
+    // успіх
+    if (steps && stepIdx < steps.length - 1) {
+      stepIdx++; S.step[m.id] = stepIdx; save();
+      toast(`Програму полагоджено! Залишилось ${steps.length - stepIdx}.`);
+      mountEditor();
+      return;
+    }
+    drawBrief(st, '<div class="verdict good">Усі перевірки пройдено!</div>');
+    let stars = 3;
+    const usedHints = steps ? steps.some((_, k) => p['h' + k]) : p.hints > 0;
+    const totalFails = steps ? steps.reduce((a, _, k) => a + (p['f' + k] || 0), 0) : p.fails;
+    if (usedHints) stars--;
+    if (totalFails >= (steps ? 6 : 4)) stars--;
+    if (p.sol) stars = 1;
+    complete(i, Math.max(1, stars));
+  }
+
+  ide.querySelector('[data-act="run"]').addEventListener('click', runIt);
+  ide.querySelector('[data-act="reset"]').addEventListener('click', () => {
+    editor.value = cur().starter;
+    consoleEl.innerHTML = '<span class="placeholder">Код повернуто до початкового.</span>';
+    editor.focus();
+  });
+  mountEditor();
+}
+
+/* ===== Завершення відсіку ===== */
+function complete(i, stars) {
+  const m = MISSIONS[i];
+  const prev = S.done[m.id];
+  const firstTime = !prev;
+  S.done[m.id] = { stars: Math.max(stars, prev ? prev.stars : 0) };
+  delete S.prog[m.id];
+  if (m.steps) S.step[m.id] = 0;
+  if (firstTime) justLit = m.id;
+  saveNow(); updateTopbar();
+  const last = doneCount() === MISSIONS.length;
+  const nxt = MISSIONS.findIndex((x, k) => k > i && !S.done[x.id]);
+  const nextI = nxt >= 0 ? nxt : nextIndex();
+  openModal(`<h2>Відсік «${esc(m.name)}» працює</h2>
+    <div class="big-stars" aria-label="${stars} з 3 зірок">${starStr(stars)}</div>
+    <p style="color:var(--ink-soft)">${stars === 3 ? 'Бездоганно — без жодної підказки.' : stars === 2 ? 'Чудово! Наступного разу спробуй без підказок.' : 'Відсік відновлено. Можеш повернутися сюди пізніше й пройти без підказки.'}</p>
+    <div class="learned"><b>Що ти вмієш тепер:</b> ${esc(m.learned)}</div>
+    <div class="modal-actions">
+      ${last ? '<button class="btn amber" data-act="station">Подивитися на станцію</button>' : nextI >= 0 ? `<button class="btn amber" data-act="next">Наступний відсік: ${esc(MISSIONS[nextI].name)}</button>` : ''}
+      <button class="btn plain" data-act="station-plain">До станції</button>
+    </div>`, root => {
+    root.querySelector('[data-act="next"]')?.addEventListener('click', () => { location.hash = '#/m/' + MISSIONS[nextI].id; });
+    root.querySelector('[data-act="station"]')?.addEventListener('click', () => { location.hash = '#/'; });
+    root.querySelector('[data-act="station-plain"]').addEventListener('click', () => { if (location.hash === '#/' ) route(); else location.hash = '#/'; });
+  });
+}
+
+/* ===== Вибір відповіді ===== */
+function renderChoice(i) {
+  const m = MISSIONS[i];
+  const p = prog(m.id);
+  let k = 0;
+  const wrap = h(`<div class="quiz">${briefHead(i)}<div class="quiz-top"><div class="qdots"></div><span class="mtopic"></span></div><div class="qcard"></div></div>`);
+  app.append(wrap);
+  const card = wrap.querySelector('.qcard');
+  const order = m.items.map(it => it.options.map((_, j) => j).sort(() => Math.random() - .5));
+  function draw() {
+    const it = m.items[k];
+    const ord = order[k];
+    wrap.querySelector('.qdots').innerHTML = m.items.map((_, j) => `<i class="${j < k ? 'ok' : j === k ? 'cur' : ''}"></i>`).join('');
+    wrap.querySelector('.mtopic').textContent = `Запис ${k + 1} з ${m.items.length}`;
+    card.innerHTML = `<div class="q">${it.code ? 'Що виведе програма?' : esc(it.q)}</div>
+      ${it.code ? `<pre class="qcode">${highlight(it.code).trimEnd()}</pre>` : ''}
+      <div class="opts">${ord.map((j, pos) => `<button class="opt ${it.codeOpts ? 'code-opt' : ''}" type="button" data-j="${j}"><span class="k">${pos + 1}</span><span>${esc(it.options[j])}</span></button>`).join('')}</div>
+      <div class="qfeed" aria-live="polite"></div><div class="qnext"></div>`;
+    card.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => pick(+b.dataset.j)));
+  }
+  function pick(j) {
+    const it = m.items[k];
+    const btn = card.querySelector(`.opt[data-j="${j}"]`);
+    const feed = card.querySelector('.qfeed');
+    if (j !== it.answer) {
+      btn.classList.add('wrong'); btn.disabled = true;
+      p.mistakes++; save();
+      feed.innerHTML = `<div class="verdict bad">Ні, не так. Подумай ще раз.</div>`;
+      return;
+    }
+    btn.classList.add('right');
+    card.querySelectorAll('.opt').forEach(b => b.disabled = true);
+    let actual = '';
+    if (it.code) {
+      const r = Py.run(it.code);
+      actual = `<div class="actual">Справжній Python виводить:<pre class="expected" style="margin-top:6px">${esc(Py.outputText(r).replace(/\n$/, ''))}</pre></div>`;
+    }
+    feed.innerHTML = `<div class="verdict good">${esc(it.explain)}</div>${actual}`;
+    const last = k === m.items.length - 1;
+    const nb = h(`<button class="btn" type="button">${last ? 'Відновити відсік' : 'Далі'}</button>`);
+    card.querySelector('.qnext').append(nb);
+    nb.addEventListener('click', () => {
+      if (last) { const mist = p.mistakes; complete(i, mist === 0 ? 3 : mist <= 2 ? 2 : 1); }
+      else { k++; draw(); card.querySelector('.opt')?.focus(); }
+    });
+    nb.focus();
+  }
+  card.addEventListener('keydown', e => {
+    if (/^[1-4]$/.test(e.key)) { const b = card.querySelectorAll('.opt')[+e.key - 1]; if (b && !b.disabled) b.click(); }
+  });
+  draw();
+}
+
+/* ===== Сканер типів ===== */
+function renderTypes(i) {
+  const m = MISSIONS[i];
+  const wrap = h(`<div class="quiz">${briefHead(i)}<div class="task" style="margin-bottom:6px">${m.task}</div><div class="quiz-top"><div class="qdots"></div><span class="mtopic"></span></div><div class="qcard"></div></div>`);
+  app.append(wrap);
+  const card = wrap.querySelector('.qcard');
+  let items, k, right, answered;
+  function start() {
+    items = TYPE_POOL.slice().sort(() => Math.random() - .5).slice(0, 10);
+    k = 0; right = 0; draw();
+  }
+  function cls(v) { return v.startsWith("'") ? 's' : (v === 'True' || v === 'False') ? 'b' : 'n'; }
+  function draw() {
+    answered = false;
+    const [val] = items[k];
+    wrap.querySelector('.qdots').innerHTML = items.map((_, j) => `<i class="${j < k ? 'ok' : j === k ? 'cur' : ''}"></i>`).join('');
+    wrap.querySelector('.mtopic').textContent = `Контейнер ${k + 1} з 10 · правильно: ${right}`;
+    card.innerHTML = `<div class="scan-value"><span class="${cls(val)}">${esc(val)}</span></div>
+      <div class="types">${Object.keys(TYPE_INFO).map((t, j) => `<button class="tbtn" type="button" data-t="${t}"><b>${t}</b><small>${j + 1} · ${TYPE_INFO[t].sub}</small></button>`).join('')}</div>
+      <div class="qfeed" aria-live="polite"></div><div class="qnext"></div>`;
+    card.querySelectorAll('.tbtn').forEach(b => b.addEventListener('click', () => pick(b.dataset.t)));
+  }
+  function pick(t) {
+    if (answered) return; answered = true;
+    const [val, ans] = items[k];
+    card.querySelectorAll('.tbtn').forEach(b => { b.disabled = true; if (b.dataset.t === ans) b.classList.add('right'); else if (b.dataset.t === t) b.classList.add('wrong'); });
+    const ok = t === ans; if (ok) right++;
+    card.querySelector('.qfeed').innerHTML = `<div class="verdict ${ok ? 'good' : 'bad'}">${ok ? 'Так! ' : `Ні, це ${ans}. `}${esc(TYPE_INFO[ans].why)}</div>`;
+    wrap.querySelector('.mtopic').textContent = `Контейнер ${k + 1} з 10 · правильно: ${right}`;
+    const last = k === items.length - 1;
+    const nb = h(`<button class="btn" type="button">${last ? 'Підсумок' : 'Наступний контейнер'}</button>`);
+    card.querySelector('.qnext').append(nb);
+    nb.addEventListener('click', () => { if (last) finish(); else { k++; draw(); } });
+    nb.focus();
+  }
+  function finish() {
+    if (right >= 8) { complete(i, right === 10 ? 3 : right === 9 ? 2 : 1); return; }
+    card.innerHTML = `<h2 style="font-size:24px;margin-bottom:8px">Правильно ${right} з 10</h2>
+      <p>Для відновлення відсіку потрібно щонайменше 8. Згадай: лапки → str, крапка → float, True/False → bool, ціле без крапки → int.</p>
+      <div class="qnext"><button class="btn amber" type="button">Сканувати ще раз</button></div>`;
+    card.querySelector('button').addEventListener('click', start);
+  }
+  card.addEventListener('keydown', e => { if (/^[1-4]$/.test(e.key)) { const b = card.querySelectorAll('.tbtn')[+e.key - 1]; if (b && !b.disabled) b.click(); } });
+  document.addEventListener('keydown', function typesKeys(e) {
+    if (!document.body.contains(card)) { document.removeEventListener('keydown', typesKeys); return; }
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || $('#modalRoot').childElementCount) return;
+    if (/^[1-4]$/.test(e.key) && !card.contains(e.target)) { const b = card.querySelectorAll('.tbtn')[+e.key - 1]; if (b && !b.disabled) b.click(); }
+  });
+  start();
+}
+
+/* ===== Пісочниця ===== */
+function renderSandbox() {
+  app.innerHTML = '';
+  app.append(h(`<div class="crumbs"><a class="back" href="#/"><span aria-hidden="true">‹</span> До станції</a></div>`));
+  app.append(h(`<div><h1 class="page-title">Пісочниця</h1><p class="page-sub">Тут можна писати будь-які програми з уроку й експериментувати. У рядку <span class="mono">&gt;&gt;&gt;</span> внизу команди виконуються одразу, як в оболонці IDLE.</p></div>`));
+  const wrap = h(`<div class="sandbox"><section></section><aside class="sheet"></aside></div>`);
+  app.append(wrap);
+  const ide = h(`<div class="ide">
+    <div class="ide-bar"><div class="dots"><i></i><i></i><i></i></div><span class="ide-title">sandbox.py</span>
+      <div class="ide-actions"><select class="ghost" aria-label="Приклади з уроку"><option value="">Приклади з уроку…</option>${EXAMPLES.map((e, j) => `<option value="${j}">${esc(e[0])}</option>`).join('')}</select>
+      <button class="run" type="button">Запустити <kbd>F5</kbd></button></div></div>
+    <div class="ed-slot"></div>
+    <div class="console-head"><span>Оболонка</span><button class="ghost" type="button" data-act="clear">Очистити</button></div>
+    <div class="console" aria-live="polite"><span class="placeholder">Тут з’явиться результат.</span></div>
+    <label class="repl"><span class="prompt">&gt;&gt;&gt;</span><input aria-label="Команда для оболонки" placeholder="наприклад, 7 * 6" autocomplete="off" spellcheck="false"></label>
+  </div>`);
+  wrap.firstElementChild.append(ide);
+  wrap.lastElementChild.innerHTML = `<h3>Шпаргалка</h3><dl>
+    <dt>print(...)</dt><dd>вивести на екран</dd>
+    <dt>input('...')</dt><dd>запитати дані (завжди рядок)</dd>
+    <dt>int(...) float(...)</dt><dd>перетворити на число</dd>
+    <dt>str(...)</dt><dd>перетворити на рядок</dd>
+    <dt>type(...)</dt><dd>дізнатися тип значення</dd>
+    <dt>+ - * /</dt><dd>додавання, віднімання, множення, ділення</dd>
+    <dt>// %</dt><dd>ціла частина й остача від ділення</dd>
+    <dt>**</dt><dd>піднесення до степеня</dd>
+    <dt>x = 5</dt><dd>покласти значення у змінну</dd>
+    <dt>for i in range(n):</dt><dd>повторити n разів (з відступом)</dd>
+    <dt># ...</dt><dd>коментар, Python його пропускає</dd>
+  </dl><p style="margin-top:12px;color:var(--ink-soft)">Пасхалки: спробуй <span class="mono">import this</span> і <span class="mono">import antigravity</span>.</p>`;
+  const consoleEl = ide.querySelector('.console');
+  let replEnv = Object.create(null);
+  let pending = null; // {src, inputs}
+  let transcript = []; // попередні записи оболонки (HTML-вузли)
+
+  function runProgram(src, inputs) {
+    const res = Py.run(src, { inputs });
+    replEnv = res.env;
+    renderConsole(consoleEl, res, { src, note: '=== Запуск програми ===' });
+    transcript = [];
+    if (res.needInput) {
+      pending = { src, inputs };
+      const line = h(`<span class="in-line"><input aria-label="Введення для програми" autocomplete="off" spellcheck="false"></span>`);
+      consoleEl.lastChild && consoleEl.lastChild.nodeType === 1 && consoleEl.lastChild.tagName === 'SPAN' ? consoleEl.lastChild.after(line) : consoleEl.append(line);
+      const inp = line.querySelector('input');
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runProgram(src, inputs.concat([inp.value])); } });
+      inp.focus();
+    } else pending = null;
+  }
+  const editor = makeEditor(ide.querySelector('.ed-slot'), S.code.__sandbox ?? EXAMPLES[0][1], v => { S.code.__sandbox = v; save(); }, () => runProgram(editor.value, []), { tall: true });
+  ide.querySelector('.run').addEventListener('click', () => runProgram(editor.value, []));
+  ide.querySelector('select').addEventListener('change', e => { if (e.target.value !== '') { editor.value = EXAMPLES[+e.target.value][1]; e.target.value = ''; editor.focus(); } });
+  ide.querySelector('[data-act="clear"]').addEventListener('click', () => { consoleEl.innerHTML = ''; });
+  const repl = ide.querySelector('.repl input');
+  const hist = []; let hi = 0;
+  repl.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') { if (hi > 0) { hi--; repl.value = hist[hi]; } e.preventDefault(); return; }
+    if (e.key === 'ArrowDown') { if (hi < hist.length) { hi++; repl.value = hist[hi] || ''; } e.preventDefault(); return; }
+    if (e.key !== 'Enter') return;
+    const line = repl.value; if (!line.trim()) return;
+    hist.push(line); hi = hist.length; repl.value = '';
+    if (consoleEl.querySelector('.placeholder')) consoleEl.innerHTML = '';
+    const block = document.createElement('div');
+    block.append(h(`<div><span class="prompt">&gt;&gt;&gt; </span>${esc(line)}</div>`));
+    const res = Py.run(line, { env: replEnv, repl: true });
+    const out = document.createElement('div');
+    if (res.needInput) { res.error = null; out.append(h('<span class="sys">У рядку &gt;&gt;&gt; input() не працює — напиши програму в редакторі й запусти її.</span>')); }
+    else renderConsole(out, res, { quietEmpty: true });
+    block.append(out);
+    consoleEl.append(block);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  });
+}
+
+/* ===== Модальні вікна, повідомлення ===== */
+let lastFocus = null;
+function openModal(html, bind) {
+  lastFocus = document.activeElement;
+  const root = $('#modalRoot');
+  root.innerHTML = '';
+  const md = h(`<div class="modal" role="dialog" aria-modal="true"><div class="modal-card">${html}</div></div>`);
+  root.append(md);
+  bind && bind(md);
+  md.addEventListener('click', e => { if (e.target === md) closeModal(); });
+  md.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Tab') {
+      const f = md.querySelectorAll('button, input, a[href], select'); if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }
+  });
+  setTimeout(() => (md.querySelector('.btn, button, input') || md).focus(), 30);
+}
+function closeModal() { const r = $('#modalRoot'); if (r.childElementCount) { r.innerHTML = ''; lastFocus && lastFocus.focus && document.body.contains(lastFocus) && lastFocus.focus(); } }
+let toastTimer = null;
+function toast(msg) {
+  const r = $('#toastRoot'); r.innerHTML = ''; r.append(h(`<div class="toast">${esc(msg)}</div>`));
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { r.innerHTML = ''; }, 3800);
+}
+
+function showCertificate() {
+  const st = starsTotal(), max = MISSIONS.length * 3;
+  const rank = st >= 32 ? 'Капітан станції' : st >= 24 ? 'Бортінженер' : 'Кадет-рятівник';
+  const date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+  openModal(`<div class="cert">
+      <div style="color:var(--ink-soft)">Станцію «Пітон-1» відновлено</div>
+      <div class="who">${esc(S.name || 'Кадет')}</div>
+      <div class="rank">${rank}</div>
+      <div class="big-stars" style="letter-spacing:0">★ ${st} <span style="font-size:20px;color:var(--ink-soft)">з ${max}</span></div>
+      <div style="color:var(--ink-soft);font-size:14px">${date}</div>
+    </div>
+    <p style="margin-top:14px">Позаду перші програми на Python: print(), арифметика, змінні, типи даних, input() і цикл for. Покажи цей екран учителю.</p>
+    <p style="color:var(--ink-soft);font-size:15px">Наступного уроку — списки: як зберегти в програмі не одне значення, а цілий ряд.</p>
+    <div class="modal-actions"><button class="btn amber" data-act="ok">Готово</button><a class="btn plain" href="#/sandbox" style="text-decoration:none">До пісочниці</a></div>`,
+    root => root.querySelector('[data-act="ok"]').addEventListener('click', closeModal));
+}
+
+function teacherPanel() {
+  openModal(`<div class="teacher"><h2>Для вчителя</h2>
+    <p style="color:var(--ink-soft);font-size:15px">Прогрес зберігається лише в цьому браузері на цьому пристрої. На спільних комп’ютерах скидайте його між класами.</p>
+    <label><input type="checkbox" id="unlockAll" ${S.unlockAll ? 'checked' : ''}> Відкрити всі відсіки (без проходження по черзі)</label>
+    <div class="modal-actions" style="margin-top:4px"><button class="btn plain" type="button" data-act="reset">Скинути прогрес на цьому пристрої</button>${doneCount() === MISSIONS.length ? '<button class="btn plain" type="button" data-act="cert">Показати підсумок</button>' : ''}</div>
+    <h3 style="margin-top:18px;font-size:18px">Відсіки й слайди презентації</h3>
+    <table>${MISSIONS.map((m, i) => `<tr><td>${i + 1}</td><td>${esc(m.name)}</td><td>${esc(m.topic)}</td><td>сл. ${m.slide}</td></tr>`).join('')}</table>
+    <div class="modal-actions"><button class="btn" type="button" data-act="close">Закрити</button></div></div>`, root => {
+    root.querySelector('#unlockAll').addEventListener('change', e => { S.unlockAll = e.target.checked; saveNow(); });
+    root.querySelector('[data-act="close"]').addEventListener('click', () => { closeModal(); route(); });
+    root.querySelector('[data-act="cert"]')?.addEventListener('click', showCertificate);
+    const rb = root.querySelector('[data-act="reset"]');
+    rb.addEventListener('click', () => {
+      if (rb.dataset.confirm) {
+        const keepUnlock = S.unlockAll;
+        Object.assign(S, { name: '', done: {}, code: {}, prog: {}, step: {}, unlockAll: keepUnlock, celebrated: false });
+        saveNow(); closeModal(); location.hash = '#/'; route(); toast('Прогрес скинуто.');
+      } else { rb.dataset.confirm = '1'; rb.textContent = 'Так, скинути все'; rb.style.borderColor = 'var(--bad)'; rb.style.color = 'var(--bad)'; }
+    });
+  });
+}
+$('#teacherBtn').addEventListener('click', teacherPanel);
+
+route();
+</script>
+</body></html>
