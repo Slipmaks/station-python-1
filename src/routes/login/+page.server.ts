@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import { classes, students } from '#lib/server/db/schema.js';
 import { PIN_TRIES, afterWrongPin, cleanCode, cleanName, hashSecret, isPin, nameKey, verifySecret } from '#lib/server/secrets.js';
@@ -15,7 +15,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!code) return { cls: null, roster: [], code: '' };
 	const cls = await findClass(code);
 	if (!cls) return { cls: null, roster: [], code };
-	const roster = await db.select({ id: students.id, name: students.name }).from(students).where(eq(students.classId, cls.id)).orderBy(asc(students.name));
+	const roster = await db.select({ id: students.id, name: students.name }).from(students).where(eq(students.classId, cls.id));
+	// за абеткою з урахуванням і/ї/є/ґ — SQLite сортує за кодами символів
+	roster.sort((a, b) => a.name.localeCompare(b.name, 'uk'));
 	return { cls, roster, code: cls.code };
 };
 
