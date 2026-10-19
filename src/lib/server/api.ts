@@ -10,13 +10,18 @@ const isInt = (x: unknown, min: number, max: number): x is number => Number.isIn
 const isCounts = (x: unknown) => Array.isArray(x) && x.length <= 50 && x.every(v => isInt(v, 0, 10_000));
 const isMission = (x: unknown): x is string => typeof x === 'string' && !!findMission(x);
 
+/** ponytail: до уроків celebrated був одним прапорцем першого уроку; прибрати, коли старих збережень не лишиться. */
+export const celebratedLessons = (x: unknown) => (x === true ? ['intro'] : x === false ? [] : x);
+
 export function parseWorkspace(x: unknown): Workspace | null {
-	if (!isObj(x) || !isObj(x.code) || !isObj(x.prog) || !isObj(x.step) || typeof x.celebrated !== 'boolean') return null;
+	if (!isObj(x) || !isObj(x.code) || !isObj(x.prog) || !isObj(x.step)) return null;
+	const celebrated = celebratedLessons(x.celebrated);
+	if (!Array.isArray(celebrated) || celebrated.length > 50 || !celebrated.every(v => typeof v === 'string')) return null;
 	if (!Object.values(x.code).every(v => typeof v === 'string')) return null;
 	if (!Object.values(x.step).every(v => isInt(v, 0, 50))) return null;
 	const progOk = Object.values(x.prog).every(p => isObj(p) && isCounts(p.hints) && isCounts(p.fails) && typeof p.sol === 'boolean' && isInt(p.mistakes, 0, 10_000));
 	if (!progOk) return null;
-	return { code: x.code, prog: x.prog, step: x.step, celebrated: x.celebrated } as Workspace;
+	return { code: x.code, prog: x.prog, step: x.step, celebrated } as Workspace;
 }
 
 /** Спроба: «правильно чи ні» браузер не надсилає — це вирішує сервер. hints і sol — лише в задачах з кодом. */

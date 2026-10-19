@@ -1,26 +1,29 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { MISSIONS } from '#lib/lessons/index.js';
 	import { S, doneCount, isUnlocked, nextIndex, toast } from '#lib/state.svelte.js';
+	import type { Lesson } from '#lib/types.js';
 
-	let { justLit = null }: { justLit?: string | null } = $props();
+	let { lesson, justLit = null }: { lesson: Lesson; justLit?: string | null } = $props();
+	const ms = $derived(lesson.missions);
 
 	// Відсіки стоять парами (зверху й знизу «хребта»), ширина схеми росте разом із кількістю відсіків.
 	const H = 400, spineY = 190;
-	const W = 370 + (Math.ceil(MISSIONS.length / 2) - 1) * 166;
+	const W = $derived(370 + (Math.ceil(ms.length / 2) - 1) * 166);
 
-	let seed = 7;
-	const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-	const stars = Array.from({ length: 70 }, () => ({ x: (rnd() * W).toFixed(0), y: (rnd() * H).toFixed(0), r: (rnd() * 1.4 + 0.4).toFixed(1), o: (rnd() * 0.5 + 0.2).toFixed(2) }));
+	const stars = $derived.by(() => {
+		let seed = 7;
+		const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+		return Array.from({ length: 70 }, () => ({ x: (rnd() * W).toFixed(0), y: (rnd() * H).toFixed(0), r: (rnd() * 1.4 + 0.4).toFixed(1), o: (rnd() * 0.5 + 0.2).toFixed(2) }));
+	});
 
-	const frac = $derived(doneCount() / MISSIONS.length);
-	const nx = $derived(nextIndex());
+	const frac = $derived(doneCount(lesson) / ms.length);
+	const nx = $derived(nextIndex(lesson));
 	const mods = $derived(
-		MISSIONS.map((m, i) => {
+		ms.map((m, i) => {
 			const col = Math.floor(i / 2), top = i % 2 === 0;
 			const x = 118 + col * 166, w = 136, hh = 96;
 			const y = top ? spineY - 34 - hh : spineY + 54;
-			const done = S.done[m.id], locked = !isUnlocked(i), next = i === nx && !locked;
+			const done = S.done[m.id], locked = !isUnlocked(lesson, i), next = i === nx && !locked;
 			return { m, i, x, y, w, hh, top, done, locked, next };
 		})
 	);
@@ -28,7 +31,7 @@
 	const lights = $derived(Array.from({ length: 12 }, (_, idx) => ({ c: idx % 3, r: Math.floor(idx / 3), lit: idx < Math.round(frac * 12) })));
 
 	function go(i: number) {
-		if (isUnlocked(i)) goto('/m/' + MISSIONS[i].id);
+		if (isUnlocked(lesson, i)) goto('/m/' + ms[i].id);
 		else toast('Цей відсік відкриється, коли відновиш попередній.');
 	}
 </script>

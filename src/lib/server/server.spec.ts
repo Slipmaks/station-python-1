@@ -39,10 +39,14 @@ describe('секрети', () => {
 });
 
 describe('перевірка даних від браузера', () => {
-	const ws = { code: { radio: "print('Hi')" }, prog: { radio: { hints: [1], fails: [0], sol: false, mistakes: 0 } }, step: { repair: 2 }, celebrated: false };
+	const ws = { code: { radio: "print('Hi')" }, prog: { radio: { hints: [1], fails: [0], sol: false, mistakes: 0 } }, step: { repair: 2 }, celebrated: ['intro'] };
 	it('робочий стан', () => {
 		expect(parseWorkspace(ws)).toEqual(ws);
 		expect(parseWorkspace({ ...ws, celebrated: 'так' })).toBeNull();
+		expect(parseWorkspace({ ...ws, celebrated: [1] })).toBeNull();
+		// старе збереження: один прапорець — про перший урок
+		expect(parseWorkspace({ ...ws, celebrated: true })?.celebrated).toEqual(['intro']);
+		expect(parseWorkspace({ ...ws, celebrated: false })?.celebrated).toEqual([]);
 		expect(parseWorkspace({ ...ws, code: { radio: 5 } })).toBeNull();
 		expect(parseWorkspace({ ...ws, prog: { radio: { hints: [-1], fails: [], sol: false, mistakes: 0 } } })).toBeNull();
 		expect(parseWorkspace([])).toBeNull();

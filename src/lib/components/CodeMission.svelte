@@ -7,7 +7,7 @@
 	import Editor from './Editor.svelte';
 	import Console from './Console.svelte';
 
-	let { m, i }: { m: CodeMission; i: number } = $props();
+	let { m }: { m: CodeMission } = $props();
 
 	// svelte-ignore state_referenced_locally — компонент перестворюється через {#key m.id}
 	const p = prog(m);
@@ -76,7 +76,7 @@
 			loadStep();
 			return;
 		}
-		complete(i, codeStars(p, !!steps));
+		complete(m, codeStars(p, !!steps));
 	}
 </script>
 

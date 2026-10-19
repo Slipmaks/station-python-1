@@ -3,9 +3,9 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
-	const done = $derived(data.missions.filter(m => m.done));
+	const missions = $derived(data.lessons.flatMap(l => l.missions));
+	const done = $derived(missions.filter(m => m.done));
 	const stars = $derived(done.reduce((a, m) => a + (m.done?.stars ?? 0), 0));
-	const untouched = $derived(data.missions.filter(m => !m.total && !m.done));
 </script>
 
 <svelte:head><title>{data.student.name} — Станція «Пітон-1»</title></svelte:head>
@@ -13,7 +13,7 @@
 <div class="crumbs"><a class="back" href="/teacher/c/{data.cls.id}"><span aria-hidden="true">‹</span> Клас {data.cls.name}</a></div>
 <h1 class="page-title">{data.student.name}</h1>
 <p class="page-sub">
-	Відсіків: {done.length} з {data.missions.length} · ★ {stars} · у грі з <Time d={data.student.createdAt} />
+	Відсіків: {done.length} з {missions.length} · ★ {stars} · у грі з <Time d={data.student.createdAt} />
 	{#if data.student.lockedUntil}· <b class="form-err">вхід заблоковано до <Time d={data.student.lockedUntil} /></b>{/if}
 </p>
 
@@ -31,38 +31,45 @@
 	</details>
 </div>
 
-{#each data.missions as m, k (m.id)}
-	{#if m.total || m.done}
-		<section class="sheet attempt-group" id="m-{m.id}">
-			<h3>
-				{k + 1}. {m.name}
-				{#if m.done}<span class="st" aria-label="{m.done.stars} з 3 зірок">{'★'.repeat(m.done.stars)}<span class="off">{'★'.repeat(3 - m.done.stars)}</span></span>{/if}
-			</h3>
-			{#if m.total}
-				<p class="page-sub">
-					{m.kind === 'code' ? 'Запусків' : 'Відповідей'}: {m.total} · невдалих: {m.fails}{#if m.kind === 'code'}{' · '}підказок: {m.hints}{/if}
-					{#if m.done} · пройдено <Time d={m.done.completedAt} />{/if}
-					{#if m.total > data.shown} · показано {data.shown} останніх{/if}
-				</p>
-				<ol class="attempts">
-					{#each m.attempts as a (a.id)}
-						<li class:ok={a.passed}>
-							<div class="attempt-meta">
-								<span class="mark" aria-label={a.passed ? 'вдало' : 'невдало'}>{a.passed ? '✓' : '✗'}</span>
-								<Time d={a.createdAt} />
-								{#if m.stepName}<span>{m.stepName} {a.step + 1}</span>{/if}
-								{#if a.hints}<span>підказок: {a.hints}</span>{/if}
-								{#if a.sol}<span>відкрито розв’язок</span>{/if}
-								{#if a.stars}<b>відсік пройдено: {'★'.repeat(a.stars)}</b>{/if}
-							</div>
-							{#if m.kind === 'code'}<pre class="qcode">{a.answer}</pre>{:else}<div class="mono">{a.answer}</div>{/if}
-						</li>
-					{/each}
-				</ol>
+{#each data.lessons as l (l.id)}
+	{@const untouched = l.missions.filter(m => !m.total && !m.done)}
+	{#if untouched.length < l.missions.length}
+		<h2 class="lesson-h">Урок {l.no}. {l.title}</h2>
+		{#each l.missions as m, k (m.id)}
+			{#if m.total || m.done}
+				<section class="sheet attempt-group" id="m-{m.id}">
+					<h3>
+						{k + 1}. {m.name}
+						{#if m.done}<span class="st" aria-label="{m.done.stars} з 3 зірок">{'★'.repeat(m.done.stars)}<span class="off">{'★'.repeat(3 - m.done.stars)}</span></span>{/if}
+					</h3>
+					{#if m.total}
+						<p class="page-sub">
+							{m.kind === 'code' ? 'Запусків' : 'Відповідей'}: {m.total} · невдалих: {m.fails}{#if m.kind === 'code'}{' · '}підказок: {m.hints}{/if}
+							{#if m.done} · пройдено <Time d={m.done.completedAt} />{/if}
+							{#if m.total > data.shown} · показано {data.shown} останніх{/if}
+						</p>
+						<ol class="attempts">
+							{#each m.attempts as a (a.id)}
+								<li class:ok={a.passed}>
+									<div class="attempt-meta">
+										<span class="mark" aria-label={a.passed ? 'вдало' : 'невдало'}>{a.passed ? '✓' : '✗'}</span>
+										<Time d={a.createdAt} />
+										{#if m.stepName}<span>{m.stepName} {a.step + 1}</span>{/if}
+										{#if a.hints}<span>підказок: {a.hints}</span>{/if}
+										{#if a.sol}<span>відкрито розв’язок</span>{/if}
+										{#if a.stars}<b>відсік пройдено: {'★'.repeat(a.stars)}</b>{/if}
+									</div>
+									{#if m.kind === 'code'}<pre class="qcode">{a.answer}</pre>{:else}<div class="mono">{a.answer}</div>{/if}
+								</li>
+							{/each}
+						</ol>
+					{/if}
+				</section>
 			{/if}
-		</section>
+		{/each}
+		{#if untouched.length}
+			<p class="page-sub">Не розпочато: {untouched.map(m => `${l.missions.indexOf(m) + 1}. ${m.name}`).join(', ')}.</p>
+		{/if}
 	{/if}
 {/each}
-{#if untouched.length}
-	<p class="page-sub">Не розпочато: {untouched.map(m => `${data.missions.indexOf(m) + 1}. ${m.name}`).join(', ')}.</p>
-{/if}
+{#if !missions.some(m => m.total || m.done)}<p class="sheet">Учень ще не розпочав жодного відсіку.</p>{/if}

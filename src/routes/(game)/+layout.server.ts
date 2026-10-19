@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import { progress, workspaces } from '#lib/server/db/schema.js';
+import { celebratedLessons } from '#lib/server/api.js';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
@@ -14,7 +15,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
 		student: { id: s.id, name: s.name, className: s.className },
 		unlockAll: s.unlockAll,
+		lessons: s.lessons,
 		done: Object.fromEntries(done.map(r => [r.missionId, { stars: r.stars }])),
-		workspace: ws?.data ?? null
+		workspace: ws ? { ...ws.data, celebrated: celebratedLessons(ws.data.celebrated) as string[] } : null
 	};
 };

@@ -15,6 +15,13 @@
       "when": 1792405481653,
       "tag": "0001_server_check",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792413510551,
+      "tag": "0002_lessons",
+      "breakpoints": true
     }
   ]
 }

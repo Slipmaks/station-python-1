@@ -7,7 +7,7 @@
 	import { complete, logAttempt, prog, save } from '#lib/state.svelte.js';
 	import BriefHead from './BriefHead.svelte';
 
-	let { m, i }: { m: ChoiceMission; i: number } = $props();
+	let { m }: { m: ChoiceMission } = $props();
 
 	// svelte-ignore state_referenced_locally — компонент перестворюється через {#key m.id}
 	const p = prog(m);
@@ -30,7 +30,7 @@
 		await tick(); nextBtn?.focus();
 	}
 	async function next() {
-		if (last) { complete(i, choiceStars(p.mistakes)); return; }
+		if (last) { complete(m, choiceStars(p.mistakes)); return; }
 		k++; wrong = []; solved = false; actual = null;
 		await tick(); card.querySelector<HTMLButtonElement>('.opt')?.focus();
 	}

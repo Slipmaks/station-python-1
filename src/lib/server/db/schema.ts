@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import type { Workspace } from '../../types.js';
 
@@ -19,6 +20,8 @@ export const classes = sqliteTable('classes', {
 	code: text().notNull().unique(),
 	/** Усі відсіки відкриті одразу, без проходження по черзі. */
 	unlockAll: integer({ mode: 'boolean' }).notNull().default(false),
+	/** id уроків, які вчитель відкрив класу; новому класу — перший урок. */
+	openLessons: text({ mode: 'json' }).notNull().$type<string[]>().default(sql`'["intro"]'`),
 	createdAt: createdAt()
 });
 

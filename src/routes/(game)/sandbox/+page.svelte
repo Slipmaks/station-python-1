@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { Py, type RunResult } from '#lib/py.js';
-	import { lesson } from '#lib/lessons/index.js';
+	import { LESSONS, lessonNo } from '#lib/lessons/index.js';
 	import { S, save } from '#lib/state.svelte.js';
 	import Editor from '#lib/components/Editor.svelte';
 	import Console from '#lib/components/Console.svelte';
 
 	type Entry = { kind: 'program'; res: RunResult; src: string; inputs: string[] } | { kind: 'repl'; line: string; res: RunResult };
 
-	let code = $state(S.code.__sandbox ?? lesson.examples[0][1]);
+	// приклади всіх уроків, згруповані за уроками
+	const groups = LESSONS.filter(l => l.examples?.length).map(l => ({ label: `Урок ${lessonNo(l)}. ${l.title}`, examples: l.examples! }));
+	let code = $state(S.code.__sandbox ?? groups[0].examples[0][1]);
 	let entries = $state.raw<Entry[]>([]);
 	let placeholder = $state(true);
 	let editor: Editor;
@@ -33,7 +35,8 @@
 	function pickExample(e: Event & { currentTarget: HTMLSelectElement }) {
 		const v = e.currentTarget.value;
 		if (v === '') return;
-		setCode(lesson.examples[+v][1]);
+		const [g, j] = v.split(':').map(Number);
+		setCode(groups[g].examples[j][1]);
 		e.currentTarget.value = '';
 		editor.focus();
 	}
@@ -65,9 +68,11 @@
 				<div class="dots"><i></i><i></i><i></i></div>
 				<span class="ide-title">sandbox.py</span>
 				<div class="ide-actions">
-					<select class="ghost" aria-label="Приклади з уроку" onchange={pickExample}>
-						<option value="">Приклади з уроку…</option>
-						{#each lesson.examples as [title], j (j)}<option value={String(j)}>{title}</option>{/each}
+					<select class="ghost" aria-label="Приклади з уроків" onchange={pickExample}>
+						<option value="">Приклади з уроків…</option>
+						{#each groups as g, gi (gi)}
+							<optgroup label={g.label}>{#each g.examples as [title], j (j)}<option value="{gi}:{j}">{title}</option>{/each}</optgroup>
+						{/each}
 					</select>
 					<button class="run" type="button" onclick={() => runProgram(code, [])}>Запустити <kbd>F5</kbd></button>
 				</div>

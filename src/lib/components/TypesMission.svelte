@@ -6,7 +6,7 @@
 	import { complete, logAttempt, ui } from '#lib/state.svelte.js';
 	import BriefHead from './BriefHead.svelte';
 
-	let { m, i }: { m: TypesMission; i: number } = $props();
+	let { m }: { m: TypesMission } = $props();
 
 	const TYPES = Object.keys(TYPE_INFO) as TypeKey[];
 	let items = $state.raw<[string, TypeKey][]>([]);
@@ -33,7 +33,7 @@
 	}
 	function next() {
 		if (!last) { k++; picked = null; return; }
-		if (right >= m.pass) complete(i, typesStars(right, m.count));
+		if (right >= m.pass) complete(m, typesStars(right, m.count));
 		else failed = true;
 	}
 	// Цифри 1–4 вибирають тип, де б не був фокус (крім полів введення й модальних вікон).

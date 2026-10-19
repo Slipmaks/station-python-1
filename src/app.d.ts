@@ -4,7 +4,8 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			student: { id: number; name: string; classId: number; className: string; unlockAll: boolean } | null;
+			/** lessons — id уроків, відкритих учителем для класу учня. */
+			student: { id: number; name: string; classId: number; className: string; unlockAll: boolean; lessons: string[] } | null;
 			teacher: { id: number; name: string } | null;
 		}
 		// interface PageData {}

@@ -1,0 +1,1 @@
+ALTER TABLE `classes` ADD `open_lessons` text DEFAULT '["intro"]' NOT NULL;

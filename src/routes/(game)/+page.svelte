@@ -1,56 +1,41 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { MISSIONS } from '#lib/lessons/index.js';
-	import { S, doneCount, flash, isUnlocked, nextIndex, saveNow, ui } from '#lib/state.svelte.js';
-	import Station from '#lib/components/Station.svelte';
+	import { goto, refreshAll } from '$app/navigation';
+	import { LESSONS } from '#lib/lessons/index.js';
+	import { S, doneCount, isOpen, starsTotal } from '#lib/state.svelte.js';
 
-	// Анімацію «ввімкнення» відсіку показуємо один раз.
-	const lit = flash.justLit;
-	flash.justLit = null;
-
-	const n = $derived(doneCount());
-	const nx = $derived(nextIndex());
-	const status = $derived(
-		n === 0 ? `Живлення немає в жодному відсіку. Почни з відсіку «${MISSIONS[0].name}».`
-		: n === MISSIONS.length ? 'Усі відсіки працюють. Станцію відновлено!'
-		: `Працює ${n} з ${MISSIONS.length} відсіків. Наступний: «${MISSIONS[nx].name}».`
-	);
-
+	// Учитель може відкрити урок посеред заняття — список оновлюється сам, поки вкладка на екрані.
 	onMount(() => {
-		if (n !== MISSIONS.length || S.celebrated) return;
-		S.celebrated = true; saveNow();
-		const t = setTimeout(() => (ui.modal = { kind: 'cert' }), 600);
-		return () => clearTimeout(t);
+		const t = setInterval(() => { if (document.visibilityState === 'visible') refreshAll(); }, 15_000);
+		return () => clearInterval(t);
 	});
 </script>
 
 <section class="hero">
 	<div class="hero-head">
 		<h1>Станція «Пітон-1», чергує {S.name}</h1>
-		<p class="status">{status}</p>
+		<p class="status">Обери урок. Нові уроки відкриває вчитель.</p>
 	</div>
-	<Station justLit={lit} />
 </section>
 
 <section>
-	<div class="missions-head">
-		<h2>Відсіки станції</h2>
-		<p>Відсіки відкриваються по черзі. Зірки: ★★★ — без підказок, ★★ — з підказками, ★ — з розв’язком.</p>
-	</div>
-	<ol class="mlist">
-		{#each MISSIONS as m, i (m.id)}
-			{@const done = S.done[m.id]}
-			{@const locked = !isUnlocked(i)}
-			{@const next = i === nx && !locked}
-			<li class:done={!!done} class:next>
-				<button class="mrow" type="button" disabled={locked} onclick={() => goto('/m/' + m.id)}>
-					<span class="mnum">{i + 1}</span>
-					<span><span class="mname">{m.name}</span><span class="mtopic">{m.topic}</span></span>
+	<div class="missions-head"><h2>Уроки</h2></div>
+	<ol class="mlist lessons">
+		{#each LESSONS as l, k (l.id)}
+			{@const open = isOpen(l)}
+			{@const n = doneCount(l)}
+			{@const all = l.missions.length}
+			<li class:done={open && n === all} class:next={open && n < all}>
+				<button class="mrow" type="button" disabled={!open} onclick={() => goto('/l/' + l.id)}>
+					<span class="mnum">{k + 1}</span>
+					<span>
+						<span class="mname">Урок {k + 1}. {l.title}</span>
+						<span class="mtopic">{!all ? 'Урок готується' : open ? `Відновлено ${n} з ${all} відсіків` : 'Відкриє вчитель'}</span>
+					</span>
 					<span class="mright">
-						{#if done}<span class="st" aria-label="{done.stars} з 3 зірок">{'★'.repeat(done.stars)}<span class="off">{'★'.repeat(3 - done.stars)}</span></span>
-						{:else if next}<span class="pill-next">Далі</span>
-						{:else if locked}закрито{/if}
+						{#if !open}{all ? 'закрито' : 'скоро'}
+						{:else if n}<span class="st" aria-label="Зірок: {starsTotal(l)} з {all * 3}">★ {starsTotal(l)}</span>
+						{:else}<span class="pill-next">Почати</span>{/if}
 					</span>
 				</button>
 			</li>

@@ -34,13 +34,16 @@ export type TypesMission = Base & { kind: 'types'; task: string; pool: [string, 
 export type Mission = CodeMission | ChoiceMission | TypesMission;
 
 export type Lesson = {
+	/** Ключ у БД (відкриті вчителем уроки класу) — не змінювати після публікації. */
 	id: string;
 	title: string;
-	/** Відсіки відкриваються в порядку масиву. id відсіків унікальні серед усіх уроків — це ключ у БД. */
+	/** Відсіки відкриваються в порядку масиву. id відсіків унікальні серед усіх уроків — це ключ у БД.
+	 *  Порожній масив — урок ще готується: у навігації видно, відкрити не можна. */
 	missions: Mission[];
 	/** Приклади для пісочниці: [назва, код]. */
-	examples: [string, string][];
-	certificate: {
+	examples?: [string, string][];
+	/** Обов’язковий, щойно в уроці є відсіки (перевіряє тест). */
+	certificate?: {
 		/** Звання від найвищого: `from` — частка зібраних зірок (0…1). */
 		ranks: { from: number; title: string }[];
 		summary: string;
@@ -50,5 +53,5 @@ export type Lesson = {
 
 /** Лічильники в межах відсіку; hints і fails — по кроках (у звичайному відсіку крок один). */
 export type Prog = { hints: number[]; fails: number[]; sol: boolean; mistakes: number };
-/** Робочий стан гри учня, що зберігається в БД одним JSON. */
-export type Workspace = { code: Record<string, string>; prog: Record<string, Prog>; step: Record<string, number>; celebrated: boolean };
+/** Робочий стан гри учня, що зберігається в БД одним JSON. celebrated — уроки, сертифікат яких уже показано. */
+export type Workspace = { code: Record<string, string>; prog: Record<string, Prog>; step: Record<string, number>; celebrated: string[] };

@@ -10,10 +10,16 @@ it('id відсіків унікальні серед усіх уроків (ц�
 	expect(new Set(ids).size).toBe(ids.length);
 });
 
-for (const lesson of LESSONS) {
+it('id уроків унікальні (це ключ у БД: відкриті вчителем уроки)', () => {
+	const ids = LESSONS.map(l => l.id);
+	expect(new Set(ids).size).toBe(ids.length);
+});
+
+// урок без відсіків ще готується — перевіряти нічого
+for (const lesson of LESSONS.filter(l => l.missions.length)) {
 	describe(`урок «${lesson.title}»`, () => {
-		it('звання сертифіката — від найвищого, останнє з порогом 0', () => {
-			const from = lesson.certificate.ranks.map(r => r.from);
+		it('є сертифікат; звання — від найвищого, останнє з порогом 0', () => {
+			const from = lesson.certificate!.ranks.map(r => r.from);
 			expect(from).toEqual([...from].sort((a, b) => b - a));
 			expect(from.at(-1)).toBe(0);
 		});

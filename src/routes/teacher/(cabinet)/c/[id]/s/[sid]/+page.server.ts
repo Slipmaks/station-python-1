@@ -4,7 +4,7 @@ import { db } from '#lib/server/db/index.js';
 import { attempts, progress, sessions, students, workspaces } from '#lib/server/db/schema.js';
 import { hashSecret, newPin } from '#lib/server/secrets.js';
 import { requireStudent } from '#lib/server/teacher.js';
-import { MISSIONS } from '#lib/lessons/index.js';
+import { LESSONS, lessonNo } from '#lib/lessons/index.js';
 import type { Actions, PageServerLoad } from './$types';
 
 /** Скільки останніх спроб показувати в кожному відсіку. */
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			.where(eq(attempts.studentId, st.id))
 			.orderBy(desc(attempts.id))
 	]);
-	const missions = MISSIONS.map(m => {
+	const missions = (l: (typeof LESSONS)[number]) => l.missions.map(m => {
 		const list = all.filter(a => a.missionId === m.id);
 		return {
 			id: m.id,
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	return {
 		cls: { id: cls.id, name: cls.name },
 		student: { id: st.id, name: st.name, createdAt: st.createdAt, lockedUntil: st.lockedUntil && st.lockedUntil > new Date() ? st.lockedUntil : null },
-		missions,
+		lessons: LESSONS.filter(l => l.missions.length).map(l => ({ id: l.id, no: lessonNo(l), title: l.title, missions: missions(l) })),
 		shown: SHOWN
 	};
 };

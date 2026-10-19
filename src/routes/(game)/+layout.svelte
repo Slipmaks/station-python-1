@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { MISSIONS } from '#lib/lessons/index.js';
+	import { page } from '$app/state';
+	import { LESSONS, findLesson, lessonOf } from '#lib/lessons/index.js';
 	import { S, doneCount, saveNow, savePending, starsTotal, ui } from '#lib/state.svelte.js';
 	import { drain, flush, net, pending } from '#lib/sync.svelte.js';
 	import Topbar from '#lib/components/Topbar.svelte';
@@ -10,6 +11,9 @@
 
 	let { children }: LayoutProps = $props();
 	afterNavigate(() => (ui.modal = null));
+	// урок, у якому зараз учень: на станції уроку або у відсіку
+	const cur = $derived(page.params.lesson ? findLesson(page.params.lesson) : page.params.id ? lessonOf(page.params.id) : undefined);
+	const stars = $derived(LESSONS.reduce((a, l) => a + starsTotal(l), 0));
 
 	onMount(() => {
 		// вкладку сховали чи закривають — зберігаємо одразу, не чекаючи таймера
@@ -41,9 +45,11 @@
 </script>
 
 <Topbar>
-	<div class="cells" aria-hidden="true">{#each MISSIONS as m (m.id)}<i class:on={!!S.done[m.id]}></i>{/each}</div>
-	<span><span class="pt-long">Відновлено {doneCount()} з {MISSIONS.length}</span><span class="pt-short" aria-hidden="true">{doneCount()}/{MISSIONS.length}</span></span>
-	<span class="stars-total" aria-label="Зірок: {starsTotal()}">★ {starsTotal()}</span>
+	{#if cur}
+		<div class="cells" aria-hidden="true">{#each cur.missions as m (m.id)}<i class:on={!!S.done[m.id]}></i>{/each}</div>
+		<span><span class="pt-long">Відновлено {doneCount(cur)} з {cur.missions.length}</span><span class="pt-short" aria-hidden="true">{doneCount(cur)}/{cur.missions.length}</span></span>
+	{/if}
+	<span class="stars-total" aria-label="Зірок: {stars}">★ {stars}</span>
 	<a class="tb-btn" href="/sandbox">Пісочниця</a>
 	<form method="POST" action="/logout" onsubmit={logout}>
 		<button class="tb-btn" type="submit" aria-label="Вийти" title="Вийти ({S.name})"><span class="tb-long">Вийти</span><span class="tb-short" aria-hidden="true">⏻</span></button>

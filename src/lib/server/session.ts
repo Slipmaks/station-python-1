@@ -30,6 +30,7 @@ export async function readSession(cookies: Cookies) {
 			classId: classes.id,
 			className: classes.name,
 			unlockAll: classes.unlockAll,
+			openLessons: classes.openLessons,
 			teacherId: teachers.id,
 			teacherName: teachers.name
 		})
@@ -46,7 +47,7 @@ export async function readSession(cookies: Cookies) {
 	return {
 		student:
 			row.studentId && row.classId
-				? { id: row.studentId, name: row.studentName!, classId: row.classId, className: row.className!, unlockAll: !!row.unlockAll }
+				? { id: row.studentId, name: row.studentName!, classId: row.classId, className: row.className!, unlockAll: !!row.unlockAll, lessons: row.openLessons ?? [] }
 				: null,
 		teacher: row.teacherId ? { id: row.teacherId, name: row.teacherName! } : null
 	};

@@ -12,6 +12,8 @@
 		return () => clearInterval(t);
 	});
 
+	const cur = $derived(data.lessons.find(l => l.id === data.lesson)!);
+
 	const cellLabel = (name: string, mission: string, c: { stars: number; attempts: number; fails: number; hints: number }) =>
 		`${name}, ${mission}: ${c.stars ? `пройдено на ${c.stars} з 3 зірок` : 'ще не пройдено'}; спроб ${c.attempts}, невдалих ${c.fails}, підказок ${c.hints}`;
 </script>
@@ -25,7 +27,7 @@
 		<p class="page-sub">Учнів: {data.rows.length}. Код для входу учнів:</p>
 		<div class="class-code">{data.cls.code}</div>
 	</div>
-	<form method="POST" action="?/unlock" class="sheet unlock">
+	<form method="POST" action="?lesson={data.lesson}&/unlock" class="sheet unlock">
 		<input type="hidden" name="value" value={data.cls.unlockAll ? '0' : '1'} />
 		{#if data.cls.unlockAll}
 			<p>Усі відсіки відкриті одразу.</p>
@@ -37,12 +39,32 @@
 	</form>
 </div>
 
-{#if !data.rows.length}
+<nav class="lesson-tabs" aria-label="Уроки">
+	{#each data.lessons as l (l.id)}
+		<a href="?lesson={l.id}" class:on={l.id === cur.id} class:open={l.open} aria-current={l.id === cur.id ? 'page' : undefined}>
+			Урок {l.no}<small>{!l.ready ? 'готується' : l.open ? 'відкрито' : 'закрито'}</small>
+		</a>
+	{/each}
+</nav>
+<div class="lesson-bar">
+	<h2>Урок {cur.no}. {cur.title}</h2>
+	{#if cur.ready}
+		<form method="POST" action="?lesson={cur.id}&/lesson">
+			<input type="hidden" name="open" value={cur.open ? '0' : '1'} />
+			<span>{cur.open ? 'Урок відкрито учням.' : 'Учні поки не бачать цього уроку.'}</span>
+			<button class="btn {cur.open ? 'plain' : 'amber'}" type="submit">{cur.open ? 'Закрити урок' : 'Відкрити урок класу'}</button>
+		</form>
+	{/if}
+</div>
+
+{#if !cur.ready}
+	<p class="sheet">Урок ще готується — відсіків у ньому поки немає.</p>
+{:else if !data.rows.length}
 	<p class="sheet">Ще ніхто не увійшов. Учні відкривають сторінку входу, вводять код <b class="mono">{data.cls.code}</b> і реєструються.</p>
 {:else}
 	<div class="report-wrap">
 		<table class="report">
-			<caption class="sr-only">Результати учнів класу {data.cls.name} за відсіками</caption>
+			<caption class="sr-only">Результати учнів класу {data.cls.name} за відсіками уроку {cur.no}</caption>
 			<thead>
 				<tr>
 					<th scope="col" class="who">Учень</th>

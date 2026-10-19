@@ -4,7 +4,7 @@ import { db } from '#lib/server/db/index.js';
 import { attempts, progress } from '#lib/server/db/schema.js';
 import { parseAttempt, readBody } from '#lib/server/api.js';
 import { check, result } from '#lib/server/judge.js';
-import { findMission } from '#lib/lessons/index.js';
+import { findMission, lessonOf } from '#lib/lessons/index.js';
 import type { RequestHandler } from './$types';
 
 /** Спроба учня: сервер перевіряє відповідь сам і, якщо відсік пройдено, записує зірки. */
@@ -12,6 +12,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	if (!locals.student) error(401);
 	const a = await readBody(request, parseAttempt);
 	const m = findMission(a.missionId)!;
+	if (!locals.student.lessons.includes(lessonOf(m.id)!.id)) error(403, 'Урок закрито вчителем');
 	const passed = check(m, a.step, a.answer);
 	if (passed === null) error(400, 'Немає такого кроку');
 
