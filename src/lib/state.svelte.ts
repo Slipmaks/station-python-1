@@ -34,7 +34,8 @@ export function saveNow() {
 }
 export const savePending = () => saveTimer !== undefined;
 
-export function logAttempt(a: { missionId: string; step: number; answer: string; passed: boolean; hints: number }) {
+/** Спроба йде на сервер; він сам перевіряє відповідь і записує пройдений відсік. */
+export function logAttempt(a: { missionId: string; step: number; answer: string; hints?: number; sol?: boolean }) {
 	send({ url: '/api/attempt', method: 'POST', body: a });
 }
 
@@ -62,6 +63,7 @@ export const flash = { justLit: null as string | null };
 let toastTimer: ReturnType<typeof setTimeout>;
 export function toast(msg: string) { ui.toast = msg; clearTimeout(toastTimer); toastTimer = setTimeout(() => (ui.toast = ''), 3800); }
 
+/** Показати проходження одразу; на сервері його вже записала остання спроба — за тими ж правилами зірок. */
 export function complete(i: number, stars: number) {
 	const m = MISSIONS[i];
 	const prev = S.done[m.id];
@@ -69,7 +71,6 @@ export function complete(i: number, stars: number) {
 	delete S.prog[m.id];
 	if ('steps' in m) S.step[m.id] = 0;
 	if (!prev) flash.justLit = m.id;
-	send({ url: '/api/complete', method: 'POST', body: { missionId: m.id, stars } });
 	saveNow();
 	ui.modal = { kind: 'complete', i, stars };
 }

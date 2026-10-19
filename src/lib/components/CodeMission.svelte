@@ -60,7 +60,7 @@
 
 	function run() {
 		const g = grade(c, code);
-		logAttempt({ missionId: m.id, step: stepIdx, answer: code, passed: g.ok, hints: hintsShown });
+		logAttempt({ missionId: m.id, step: stepIdx, answer: code, hints: hintsShown, sol: p.sol });
 		res = g.res;
 		missingInputs = g.res.needInput ? g.inputsCount : -1;
 		checkState = g.st;

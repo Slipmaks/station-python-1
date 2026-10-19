@@ -69,9 +69,14 @@ export const attempts = sqliteTable(
 		step: integer().notNull().default(0),
 		/** Код учня або обрана відповідь. */
 		answer: text().notNull(),
+		/** Перевіряє сервер, а не браузер. */
 		passed: integer({ mode: 'boolean' }).notNull(),
 		/** Скільки підказок було відкрито на момент спроби. */
 		hints: integer().notNull().default(0),
+		/** Учень відкривав розв’язок у цьому проходженні відсіку. */
+		sol: integer({ mode: 'boolean' }).notNull().default(false),
+		/** Зірки, якщо ця спроба завершила відсік; наступні спроби — вже нове проходження. */
+		stars: integer(),
 		createdAt: createdAt()
 	},
 	t => [index('attempts_student_mission').on(t.studentId, t.missionId)]

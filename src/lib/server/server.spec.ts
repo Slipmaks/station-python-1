@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { PIN_LOCK_MS, PIN_TRIES, afterWrongPin, cleanCode, hashSecret, isPin, nameKey, newClassCode, verifySecret } from './secrets.js';
-import { parseAttempt, parseCompletion, parseWorkspace } from './api.js';
+import { parseAttempt, parseWorkspace } from './api.js';
+import { check, result } from './judge.js';
 import { STUCK_FAILS, buildReport } from './report.js';
 import { ago } from '../time.js';
+import { resolveTask } from '../grade.js';
+import { findMission } from '../lessons/index.js';
+import type { Mission } from '../types.js';
 
 describe('секрети', () => {
 	it('PIN перевіряється лише правильний, а хеш щоразу інший (сіль)', async () => {
@@ -43,17 +47,73 @@ describe('перевірка даних від браузера', () => {
 		expect(parseWorkspace({ ...ws, prog: { radio: { hints: [-1], fails: [], sol: false, mistakes: 0 } } })).toBeNull();
 		expect(parseWorkspace([])).toBeNull();
 	});
-	it('спроба: лише відомий відсік і розумні межі', () => {
-		const a = { missionId: 'radio', step: 0, answer: "print('Hi')", passed: false, hints: 1 };
+	it('спроба: лише відомий відсік і розумні межі; «пройдено» від браузера не береться', () => {
+		const a = { missionId: 'radio', step: 0, answer: "print('Hi')", hints: 1, sol: true };
 		expect(parseAttempt(a)).toEqual(a);
+		expect(parseAttempt({ ...a, passed: true })).toEqual(a);
+		expect(parseAttempt({ missionId: 'archive', step: 0, answer: 'Інтерпретатор' })).toEqual({ missionId: 'archive', step: 0, answer: 'Інтерпретатор', hints: 0, sol: false });
 		expect(parseAttempt({ ...a, missionId: 'nope' })).toBeNull();
 		expect(parseAttempt({ ...a, answer: 'x'.repeat(20_001) })).toBeNull();
 		expect(parseAttempt({ ...a, step: 1.5 })).toBeNull();
+		expect(parseAttempt({ ...a, sol: 'так' })).toBeNull();
 	});
-	it('проходження: зірки 1–3', () => {
-		expect(parseCompletion({ missionId: 'radio', stars: 3 })).toEqual({ missionId: 'radio', stars: 3 });
-		expect(parseCompletion({ missionId: 'radio', stars: 4 })).toBeNull();
-		expect(parseCompletion({ missionId: 'radio', stars: 0 })).toBeNull();
+});
+
+function mission<K extends Mission['kind']>(id: string, kind: K) {
+	const m = findMission(id);
+	if (m?.kind !== kind) throw new Error(`немає відсіку ${id}`);
+	return m as Extract<Mission, { kind: K }>;
+}
+
+describe('сервер сам перевіряє відповіді й рахує зірки', () => {
+	const radio = mission('radio', 'code'), repair = mission('repair', 'code');
+	const archive = mission('archive', 'choice'), scanner = mission('scanner', 'types');
+	const row = (step: number, passed: boolean, hints = 0, sol = false) => ({ step, passed, hints, sol });
+
+	it('відповідь: код запускається, вікторина й сканер звіряються з уроком', () => {
+		const t = resolveTask(radio, 0);
+		expect([check(radio, 0, t.solution), check(radio, 0, t.starter), check(radio, 1, t.solution)]).toEqual([true, false, null]);
+		const q = archive.items[0];
+		expect(check(archive, 0, q.options[q.answer])).toBe(true);
+		expect(check(archive, 0, q.options[(q.answer + 1) % q.options.length])).toBe(false);
+		expect(check(archive, archive.items.length, q.options[q.answer])).toBeNull();
+		const [v, type] = scanner.pool[0];
+		expect(check(scanner, 0, `${v} → ${type}`)).toBe(true);
+		expect(check(scanner, 0, `${v} → ${type === 'int' ? 'str' : 'int'}`)).toBe(false);
+		expect(check(scanner, 0, '123456 → int')).toBeNull();
+		expect(check(scanner, scanner.count, `${v} → ${type}`)).toBeNull();
+	});
+	it('задача з кодом: ті самі зірки, що й у браузері', () => {
+		expect(result(radio, [row(0, true)])).toBe(3);
+		expect(result(radio, [...Array(3).fill(row(0, false)), row(0, true)])).toBe(3);
+		expect(result(radio, [...Array(4).fill(row(0, false)), row(0, true)])).toBe(2);
+		expect(result(radio, [row(0, false, 1), row(0, true, 1)])).toBe(2);
+		expect(result(radio, [row(0, false, 0, true), row(0, true, 0, true)])).toBe(1);
+		expect(result(radio, [row(0, false)])).toBeNull();
+	});
+	it('ремонтний відсік: потрібні всі програми цього проходження', () => {
+		const n = 'steps' in repair ? repair.steps.length : 1;
+		const all = Array.from({ length: n }, (_, s) => row(s, true));
+		expect(n).toBeGreaterThan(1);
+		expect(result(repair, all)).toBe(3);
+		expect(result(repair, [row(0, false), row(0, false), ...all, ...Array(4).fill(row(n - 1, false)), row(n - 1, true)])).toBe(2);
+		expect(result(repair, [row(n - 1, true)])).toBeNull();
+		expect(result(repair, all.slice(0, -1))).toBeNull();
+	});
+	it('вікторина: кожна помилка рахується; останнє запитання без попередніх — не проходження', () => {
+		const all = archive.items.map((_, k) => row(k, true));
+		expect(result(archive, all)).toBe(3);
+		expect(result(archive, [row(0, false), row(0, false), ...all])).toBe(2);
+		expect(result(archive, [row(0, false), row(1, false), row(2, false), ...all])).toBe(1);
+		expect(result(archive, all.slice(-1))).toBeNull();
+		expect(result(archive, [...all, row(all.length - 1, false)])).toBeNull();
+	});
+	it('сканер: останній повний прохід, щонайменше pass правильних', () => {
+		const run = (right: number) => Array.from({ length: scanner.count }, (_, k) => row(k, k < right));
+		expect([10, 9, 8, 7].map(r => result(scanner, run(r)))).toEqual([3, 2, 1, null]);
+		expect(result(scanner, [...run(3).slice(0, 4), ...run(10)])).toBe(3);
+		expect(result(scanner, run(10).slice(1))).toBeNull();
+		expect(result(scanner, Array(scanner.count).fill(row(0, true)))).toBeNull();
 	});
 });
 

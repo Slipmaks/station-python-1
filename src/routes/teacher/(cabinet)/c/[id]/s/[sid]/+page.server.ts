@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	const [done, all] = await Promise.all([
 		db.select({ missionId: progress.missionId, stars: progress.stars, completedAt: progress.completedAt }).from(progress).where(eq(progress.studentId, st.id)),
 		db
-			.select({ id: attempts.id, missionId: attempts.missionId, step: attempts.step, answer: attempts.answer, passed: attempts.passed, hints: attempts.hints, createdAt: attempts.createdAt })
+			.select({ id: attempts.id, missionId: attempts.missionId, step: attempts.step, answer: attempts.answer, passed: attempts.passed, hints: attempts.hints, sol: attempts.sol, stars: attempts.stars, createdAt: attempts.createdAt })
 			.from(attempts)
 			.where(eq(attempts.studentId, st.id))
 			.orderBy(desc(attempts.id))

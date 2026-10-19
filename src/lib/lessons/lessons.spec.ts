@@ -33,6 +33,7 @@ for (const lesson of LESSONS) {
 				it(`${m.id}: правильні відповіді збігаються з виводом Python`, () => {
 					for (const item of m.items) {
 						expect(item.answer).toBeLessThan(item.options.length);
+						expect(new Set(item.options).size).toBe(item.options.length); // сервер звіряє відповідь за текстом
 						if (item.code) expect(Py.outputText(Py.run(item.code)).trimEnd()).toBe(item.options[item.answer]);
 					}
 				});
@@ -41,6 +42,7 @@ for (const lesson of LESSONS) {
 				it(`${m.id}: type() збігається з відповідями, пул достатній`, () => {
 					expect(m.pool.length).toBeGreaterThanOrEqual(m.count);
 					expect(m.pass).toBeLessThanOrEqual(m.count);
+					expect(new Set(m.pool.map(([v]) => v)).size).toBe(m.pool.length); // сервер шукає значення в пулі
 					for (const [v, t] of m.pool) expect(Py.outputText(Py.run(`print(type(${v}))`)).trim()).toBe(`<class '${t}'>`);
 				});
 			}

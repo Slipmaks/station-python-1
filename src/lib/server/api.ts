@@ -19,15 +19,12 @@ export function parseWorkspace(x: unknown): Workspace | null {
 	return { code: x.code, prog: x.prog, step: x.step, celebrated: x.celebrated } as Workspace;
 }
 
+/** Спроба: «правильно чи ні» браузер не надсилає — це вирішує сервер. hints і sol — лише в задачах з кодом. */
 export function parseAttempt(x: unknown) {
 	if (!isObj(x) || !isMission(x.missionId) || !isInt(x.step, 0, 100) || typeof x.answer !== 'string' || x.answer.length > 20_000) return null;
-	if (typeof x.passed !== 'boolean' || !isInt(x.hints, 0, 20)) return null;
-	return { missionId: x.missionId, step: x.step, answer: x.answer, passed: x.passed, hints: x.hints };
-}
-
-export function parseCompletion(x: unknown) {
-	if (!isObj(x) || !isMission(x.missionId) || !isInt(x.stars, 1, 3)) return null;
-	return { missionId: x.missionId, stars: x.stars };
+	const { hints = 0, sol = false } = x;
+	if (!isInt(hints, 0, 20) || typeof sol !== 'boolean') return null;
+	return { missionId: x.missionId, step: x.step, answer: x.answer, hints, sol };
 }
 
 /** Тіло запиту як JSON, перевірене функцією parse; інакше — 400/413. */

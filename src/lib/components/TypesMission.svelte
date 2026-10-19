@@ -27,7 +27,7 @@
 	async function pick(t: TypeKey) {
 		if (picked) return;
 		picked = t;
-		logAttempt({ missionId: m.id, step: k, answer: `${val} → ${t}`, passed: t === ans, hints: 0 });
+		logAttempt({ missionId: m.id, step: k, answer: `${val} → ${t}` });
 		if (t === ans) right++;
 		await tick(); nextBtn?.focus();
 	}

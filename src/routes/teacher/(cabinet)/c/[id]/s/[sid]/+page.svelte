@@ -52,6 +52,8 @@
 								<Time d={a.createdAt} />
 								{#if m.stepName}<span>{m.stepName} {a.step + 1}</span>{/if}
 								{#if a.hints}<span>підказок: {a.hints}</span>{/if}
+								{#if a.sol}<span>відкрито розв’язок</span>{/if}
+								{#if a.stars}<b>відсік пройдено: {'★'.repeat(a.stars)}</b>{/if}
 							</div>
 							{#if m.kind === 'code'}<pre class="qcode">{a.answer}</pre>{:else}<div class="mono">{a.answer}</div>{/if}
 						</li>

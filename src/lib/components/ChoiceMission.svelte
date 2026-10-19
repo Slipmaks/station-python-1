@@ -23,7 +23,7 @@
 
 	async function pick(j: number) {
 		if (solved || wrong.includes(j)) return;
-		logAttempt({ missionId: m.id, step: k, answer: it.options[j], passed: j === it.answer, hints: 0 });
+		logAttempt({ missionId: m.id, step: k, answer: it.options[j] });
 		if (j !== it.answer) { wrong.push(j); p.mistakes++; save(); return; }
 		solved = true;
 		actual = it.code ? Py.outputText(Py.run(it.code)).replace(/\n$/, '') : null;
