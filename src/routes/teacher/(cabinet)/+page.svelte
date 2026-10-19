@@ -23,7 +23,7 @@
 
 <form method="POST" action="?/create" class="sheet form-row">
 	<label for="cname">Новий клас</label>
-	<input id="cname" name="name" value={form?.name ?? ''} placeholder="наприклад, 9-Б" required maxlength="30" autocomplete="off" />
+	<input id="cname" name="name" defaultValue={form?.name ?? ''} placeholder="наприклад, 9-Б" required maxlength="30" autocomplete="off" />
 	<button class="btn" type="submit">Створити</button>
 	{#if form?.error}<p class="form-err" role="alert">{form.error}</p>{/if}
 </form>

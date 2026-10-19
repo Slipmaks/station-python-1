@@ -13,7 +13,7 @@
 	<p class="page-sub">Учні входять за кодом класу на <a href="/login">сторінці входу</a>.</p>
 	<form method="POST" class="sheet form-stack">
 		<label for="login">Логін</label>
-		<input id="login" name="login" value={form?.login ?? ''} required autocomplete="username" />
+		<input id="login" name="login" defaultValue={form?.login ?? ''} required autocomplete="username" />
 		<label for="password">Пароль</label>
 		<input id="password" name="password" type="password" required autocomplete="current-password" />
 		{#if form?.error}<p class="form-err" role="alert">{form.error}</p>{/if}

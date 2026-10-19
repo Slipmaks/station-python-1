@@ -17,7 +17,7 @@
 				<p>Ти — черговий кадет. Щоб заступити на чергування, введи код свого класу.</p>
 				<form method="GET" class="intro-form">
 					<label for="code">Код класу — його дасть учитель</label>
-					<input id="code" name="code" value={data.code} required maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+					<input id="code" name="code" defaultValue={data.code} required maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" />
 					<button class="btn amber" type="submit">Далі</button>
 				</form>
 				{#if data.code}<p class="login-err">Клас із кодом «{data.code}» не знайдено. Перевір код.</p>{/if}
@@ -45,7 +45,7 @@
 						<h2>Я тут уперше</h2>
 						<input type="hidden" name="code" value={data.cls.code} />
 						<label for="name">Ім’я та перша літера прізвища</label>
-						<input id="name" name="name" value={form?.name ?? ''} required minlength="2" maxlength="40" autocomplete="off" placeholder="наприклад, Оля К." />
+						<input id="name" name="name" defaultValue={form?.name ?? ''} required minlength="2" maxlength="40" autocomplete="off" placeholder="наприклад, Оля К." />
 						<label for="pin1">Придумай PIN — 4 цифри</label>
 						<input id="pin1" name="pin" type="password" inputmode="numeric" pattern={'\\d{4}'} maxlength="4" required autocomplete="new-password" />
 						<label for="pin2">Повтори PIN</label>
