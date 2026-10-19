@@ -57,16 +57,19 @@ export function explainError(e, events, src) {
   if (t === 'TypeError') {
     if (m.startsWith('can only concatenate str')) return '<b>Текст + число не додаються</b>Значення ліворуч від <code>+</code> — рядок (текст). Якщо воно прийшло з <code>input()</code>, перетвори його на число: <code>int(...)</code>.';
     if (m.startsWith('unsupported operand') && m.includes("'str'")) return '<b>Число і текст не поєднуються</b>Один з доданків — рядок (текст). Перетвори його на число за допомогою <code>int()</code> або <code>float()</code>.';
+    if (m === "'list' object is not callable") return '<b>Квадратні дужки, а не круглі</b>Елемент списку беруть за номером у квадратних дужках: <code>a[0]</code>. Круглі дужки після імені — це виклик команди.';
+    if (m.startsWith('list indices must be integers')) return '<b>Номер елемента — ціле число</b>Номер не може бути дробовим: <code>a[1]</code>, а не <code>a[1.0]</code>. Якщо номер обчислено діленням <code>/</code>, бери <code>//</code>.';
     if (m.includes('not callable')) return '<b>Це не команда</b>Дужки після імені означають виклик команди, а тут стоїть звичайне значення. Можливо, змінну названо так само, як команду.';
     if (m.includes("can't multiply sequence")) return '<b>Текст можна множити лише на ціле число</b>Наприклад, <code>\'ха\' * 3</code> → хахаха.';
     return '<b>Неправильний тип даних</b>Ця дія не підходить для такого типу значення. Перевір, де число, а де текст.';
   }
   if (t === 'ValueError') {
     if (m.startsWith('invalid literal for int()')) return '<b>Це не ціле число</b><code>int()</code> не може перетворити такий текст на ціле число. Потрібні лише цифри — без пробілів, коми, крапки чи букв.';
-    if (m.startsWith('could not convert string to float')) return '<b>Це не число</b><code>float()</code> не може перетворити такий текст на число. Дробову частину відділяй крапкою: 3.5.';
+    if (m.startsWith('could not convert string to float')) return '<b>Це не число</b><code>float()</code> не може перетворити такий текст на число. Дробову частину відділяй крапкою (3.5), а числа між собою — пропуском (4 5 6).';
     return '';
   }
   if (t === 'ZeroDivisionError') return '<b>Ділення на нуль</b>На нуль ділити не можна — навіть Python’у.';
+  if (m === 'list assignment index out of range') return '<b>Такого елемента ще немає</b>Нове значення можна присвоїти лише наявному елементу. Щоб додати елемент у кінець списку, пиши <code>a.append(5)</code>.';
   if (t === 'IndexError') return '<b>Такого номера немає</b>Нумерація починається з 0, а останній номер на 1 менший за довжину.';
   return '';
 }

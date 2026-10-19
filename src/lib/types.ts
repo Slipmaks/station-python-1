@@ -15,6 +15,8 @@ export type CodeTask = {
 	checks: Check[];
 	hints: string[];
 	solution: string;
+	/** Неправильні програми (вписана відповідь, пропущена конструкція теми), які перевірки мусять відкинути — перевіряє тест. */
+	wrong?: string[];
 	tests?: { inputs: string[] }[];
 	inputsNote?: string;
 	otherDataLabel?: string;
@@ -23,7 +25,8 @@ export type CodeTask = {
 /** Крок «ремонтного» відсіку: кілька зламаних програм поспіль. */
 export type RepairStep = { task: string; expected: string; starter: string; hint: string; solution: string };
 
-type Base = { id: string; name: string; topic: string; slide: string; story: string; learned: string };
+/** slide — номер слайда презентації до уроку («12», «2–5»); без презентації поле пропускають. */
+type Base = { id: string; name: string; topic: string; slide?: string; story: string; learned: string };
 
 export type CodeMission = Base & { kind: 'code' } & (CodeTask | { steps: RepairStep[] });
 export type ChoiceItem = { q?: string; code?: string; options: string[]; answer: number; explain: string; codeOpts?: boolean };

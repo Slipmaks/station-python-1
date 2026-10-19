@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Py } from '../py.js';
 import { choiceStars, codeStars, grade, resolveTask, typesStars } from '../grade.js';
+import { norm } from '../checks.js';
+import type { Mission } from '../types.js';
 import { LESSONS, findMission } from './index.js';
 
 // Страховка для нових уроків: еталонний розв’язок проходить перевірки, стартовий код — ні,
@@ -15,6 +17,32 @@ it('id уроків унікальні (це ключ у БД: відкриті 
 	expect(new Set(ids).size).toBe(ids.length);
 });
 
+it('id уроків і відсіків — малі латинські літери, цифри й дефіс (вони в адресі сторінки)', () => {
+	for (const l of LESSONS) for (const id of [l.id, ...l.missions.map(m => m.id)]) expect(id).toMatch(/^[a-z][a-z0-9-]*$/);
+});
+
+it('назви відсіків не повторюються серед усіх уроків', () => {
+	const names = LESSONS.flatMap(l => l.missions.map(m => m.name));
+	expect(names.filter((n, k) => names.indexOf(n) !== k)).toEqual([]);
+});
+
+/** Тексти, що потрапляють на сторінку як HTML. */
+const htmlTexts = (m: Mission) => [
+	m.story,
+	...(m.kind === 'types' ? [m.task] : m.kind === 'code' ? ('steps' in m ? m.steps.flatMap(s => [s.task, s.hint]) : [m.task, ...m.hints, m.inputsNote ?? '']) : [])
+];
+/** null — розмітка гаразд; інакше — що з нею не так. */
+function badHtml(s: string) {
+	const open: string[] = [];
+	for (const [tag, close, name] of s.matchAll(/<(\/?)([a-zA-Z][^>\s]*)[^>]*>/g)) {
+		if (!['b', 'i', 'code', 'br'].includes(name) || tag !== `<${close}${name}>`) return `тег ${tag} заборонено`;
+		if (name === 'br') continue;
+		if (!close) open.push(name);
+		else if (open.pop() !== name) return `зайвий ${tag}`;
+	}
+	return open.length ? `не закрито <${open.at(-1)}>` : null;
+}
+
 // урок без відсіків ще готується — перевіряти нічого
 for (const lesson of LESSONS.filter(l => l.missions.length)) {
 	describe(`урок «${lesson.title}»`, () => {
@@ -23,6 +51,15 @@ for (const lesson of LESSONS.filter(l => l.missions.length)) {
 			expect(from).toEqual([...from].sort((a, b) => b - a));
 			expect(from.at(-1)).toBe(0);
 		});
+
+		it('приклади для пісочниці запускаються без помилок', () => {
+			for (const [name, code] of lesson.examples ?? []) expect(Py.run(code).error, name).toBeNull();
+		});
+
+		for (const m of lesson.missions)
+			it(`${m.id}: у текстах лише <b>, <i>, <code>, <br>, і кожен тег закрито`, () => {
+				for (const s of htmlTexts(m)) expect(badHtml(s), s).toBeNull();
+			});
 
 		for (const m of lesson.missions) {
 			if (m.kind === 'code') {
@@ -33,6 +70,23 @@ for (const lesson of LESSONS.filter(l => l.missions.length)) {
 						expect(grade(t, t.solution).verdict).toEqual({ kind: 'good' });
 						expect(grade(t, t.starter).ok).toBe(false);
 					});
+				}
+				if (!('steps' in m)) {
+					it(`${m.id}: «Очікуваний результат» — це вивід еталонного розв’язку`, () => {
+						const out = norm(Py.outputText(Py.run(m.solution, { inputs: m.tests?.[0].inputs })));
+						expect(out).toBe(typeof m.expected === 'string' ? m.expected : m.expected.map(([t]) => t).join(''));
+					});
+					it(`${m.id}: неправильні програми (wrong) перевірки відкидають`, () => {
+						expect(m.wrong?.length, 'додай у відсік wrong — 1–3 неправильні програми').toBeGreaterThan(0);
+						// програма з помилкою відпадає й так — вона нічого не перевіряє
+						for (const w of m.wrong ?? []) expect(Py.run(w, { inputs: m.tests?.[0].inputs }).error, w).toBeNull();
+						expect((m.wrong ?? []).filter(w => grade(m, w).ok), 'ці неправильні програми проходять перевірки').toEqual([]);
+					});
+					if (m.tests && m.tests.length > 1)
+						it(`${m.id}: перевірка на інших даних має пояснення (inputsNote) і назву (otherDataLabel)`, () => {
+							expect(m.inputsNote).toBeTruthy();
+							expect(m.otherDataLabel).toBeTruthy();
+						});
 				}
 			}
 			if (m.kind === 'choice') {

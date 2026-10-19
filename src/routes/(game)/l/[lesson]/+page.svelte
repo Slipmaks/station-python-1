@@ -26,7 +26,7 @@
 	onMount(() => {
 		if (n !== ms.length || S.celebrated.includes(lesson.id)) return;
 		S.celebrated.push(lesson.id); saveNow();
-		const t = setTimeout(() => (ui.modal = { kind: 'cert', lesson: lesson.id }), 600);
+		const t = setTimeout(() => { ui.modal = { kind: 'cert', lesson: lesson.id }; }, 600);
 		return () => clearTimeout(t);
 	});
 </script>

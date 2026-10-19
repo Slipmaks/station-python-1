@@ -18,6 +18,7 @@ const missions: Mission[] = [
       "Текст беремо в лапки: <code>print('...')</code>. Кома й знак оклику — теж частина тексту, тож вони мають бути всередині лапок.",
     ],
     solution: "print('Привіт, Земле!')",
+    wrong: ["print('Привіт, Земле')", "print('привіт, земле!')"],
     learned: 'print() виводить на екран те, що записано в дужках; текст беремо в лапки.',
   },
   {
@@ -70,6 +71,7 @@ const missions: Mission[] = [
       'Запиши весь вираз просто в print(): <code>print(24 * ...)</code>',
     ],
     solution: 'print(24 * 60 * 60)',
+    wrong: ['print(86400)', 'print(24 + 60 + 60)'],
     learned: 'Python — суперкалькулятор: + - * / і дужки працюють, як у математиці.',
   },
   {
@@ -88,6 +90,7 @@ const missions: Mission[] = [
       'Два значення в одному print() розділяй комою: <code>print(17 // 5, ...)</code>',
     ],
     solution: 'print(17 // 5, 17 % 5)',
+    wrong: ['print(3, 2)', 'print(17 / 5, 17 % 5)'],
     learned: '// — ціла частина від ділення, % — остача.',
   },
   {
@@ -106,6 +109,7 @@ const missions: Mission[] = [
       'Щоб зменшити значення: <code>fuel = fuel - 35</code> — візьми те, що лежить у коробці, відніми 35 і поклади назад. Потім <code>print(fuel)</code>.',
     ],
     solution: 'fuel = 100\nfuel = fuel - 35\nprint(fuel)',
+    wrong: ['fuel = 65\nprint(fuel)', 'fuel = 100\nprint(fuel - 35)'],
     learned: 'Змінна — «коробка» з ім’ям. Знак = означає «поклади в коробку», а не «дорівнює».',
   },
   {
@@ -137,6 +141,7 @@ const missions: Mission[] = [
       "Виведи привітання і змінну через кому: <code>print('Привіт,', name)</code>",
     ],
     solution: "name = input('Як тебе звати? ')\nprint('Привіт,', name)",
+    wrong: ["input('Як тебе звати? ')\nprint('Привіт, Марко')", "name = input('Як тебе звати? ')\nprint('Привіт!')"],
     learned: 'input() отримує дані, введені з клавіатури, і повертає їх як рядок.',
   },
   {
@@ -158,6 +163,7 @@ const missions: Mission[] = [
       "Перетвори введене на ціле число: <code>age = int(input('Скільки тобі років? '))</code>",
     ],
     solution: "age = int(input('Скільки тобі років? '))\nprint('Через 5 років тобі буде', age + 5)",
+    wrong: ["age = int(input('Скільки тобі років? '))\nprint('Через 5 років тобі буде 19')", "age = int(input('Скільки тобі років? '))\nprint('Через 5 років тобі буде', age)"],
     learned: 'Щоб рахувати з введеними даними, перетворюй їх: int() — ціле число, float() — дробове.',
   },
   {
@@ -184,6 +190,7 @@ const missions: Mission[] = [
     checks: [
       { label: 'Використано цикл for … in range(…)', fn: c => /\bfor\b[\s\S]*\bin\s+range\s*\(/.test(stripStrings(c.src)) },
       { label: 'Команда print() у програмі лише одна', fn: c => count(c.src, 'print') === 1 },
+      { label: 'Слово «Сигнал!» записано в коді один раз — повторює цикл', fn: c => c.src.split('Сигнал!').length === 2 },
       { label: 'Виведено «Сигнал!» 5 разів', fn: outIs('Сигнал!\nСигнал!\nСигнал!\nСигнал!\nСигнал!'), diff: 'Сигнал!\nСигнал!\nСигнал!\nСигнал!\nСигнал!' },
     ],
     hints: [
@@ -191,6 +198,7 @@ const missions: Mission[] = [
       "Команду, яку треба повторювати, пиши з відступом 4 пробіли (клавіша Tab):\n<code>for i in range(5):\n    print('Сигнал!')</code>",
     ],
     solution: "for i in range(5):\n    print('Сигнал!')",
+    wrong: ["print('Сигнал!')\nprint('Сигнал!')\nprint('Сигнал!')\nprint('Сигнал!')\nprint('Сигнал!')", "for i in range(1):\n    print('Сигнал!\\nСигнал!\\nСигнал!\\nСигнал!\\nСигнал!')"],
     learned: 'for i in range(n): повторює команди з відступом n разів.',
   },
   {
@@ -202,6 +210,7 @@ const missions: Mission[] = [
     checks: [
       { label: 'Використано цикл for', fn: c => /\bfor\b/.test(stripStrings(c.src)) },
       { label: 'Команд print() не більше двох', fn: c => count(c.src, 'print') <= 2 },
+      { label: 'Числа відліку не записано готовими — їх дає змінна циклу', fn: c => !c.src.includes('9') },
       { label: 'Виведено відлік 10 … 1 і «Старт!»', fn: outIs('10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nСтарт!'), diff: '10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nСтарт!' },
     ],
     hints: [
@@ -209,6 +218,7 @@ const missions: Mission[] = [
       "Усередині циклу: <code>print(10 - i)</code>. А <code>print('Старт!')</code> — уже після циклу, без відступу.",
     ],
     solution: "for i in range(10):\n    print(10 - i)\nprint('Старт!')",
+    wrong: ["for i in range(10):\n    print(i)\nprint('Старт!')", "for i in range(1):\n    print('10\\n9\\n8\\n7\\n6\\n5\\n4\\n3\\n2\\n1\\nСтарт!')"],
     learned: 'Змінна циклу i на кожному кроці отримує наступне число з range() — і її можна використовувати в обчисленнях.',
   },
 ];

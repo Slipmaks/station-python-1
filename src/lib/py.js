@@ -21,6 +21,7 @@ const Py = (() => {
     }
     if (Array.isArray(v)) return v.__tuple ? 'tuple' : 'list';
     if (v.__range) return 'range';
+    if (v.__map) return 'map';
     if (v.__type) return 'type';
     if (v.__builtin) return 'builtin_function_or_method';
     if (v.__module) return 'module';
@@ -84,6 +85,7 @@ const Py = (() => {
       return '[' + inner + ']';
     }
     if (v.__range) return v.step === 1n ? `range(${v.start}, ${v.stop})` : `range(${v.start}, ${v.stop}, ${v.step})`;
+    if (v.__map) return `<map object at 0x${v.addr}>`;
     if (v.__type) return `<class '${v.__type}'>`;
     if (v.__builtin) return `<built-in function ${v.__builtin}>`;
     if (v.__module) return `<module '${v.__module}'>`;
@@ -437,7 +439,10 @@ const Py = (() => {
           const t = toks[p++];
           const args = [], kwargs = [];
           while (!at('OP', ')')) {
-            if (peek().t === 'NAME' && peek(1).t === 'OP' && peek(1).v === '=') {
+            if (at('OP', '*')) {
+              const t = toks[p++];
+              args.push({ k: 'star', e: expr(), line: t.line });
+            } else if (peek().t === 'NAME' && peek(1).t === 'OP' && peek(1).v === '=') {
               const n = toks[p].v; p += 2; kwargs.push({ name: n, v: expr() });
             } else {
               if (kwargs.length) throw syntax('positional argument follows keyword argument');
@@ -627,6 +632,11 @@ Namespaces are one honking great idea -- let's do more of those!`;
         for (let i = 0n; i < n; i++) { res.push(x); x += v.step; }
         return res;
       }
+      if (v && v.__map) {
+        const res = [], n = Math.min(...v.its.map(a => a.length));
+        while (v.i < n) { const i = v.i++; res.push(callValue(v.f, v.its.map(a => a[i]), [])); }
+        return res;
+      }
       throw err('TypeError', `'${typeName(v)}' object is not iterable`);
     }
     function roundHalfEven(x) {
@@ -636,6 +646,7 @@ Namespaces are one honking great idea -- let's do more of those!`;
     }
 
     const B = (name, fn) => ({ __builtin: name, fn });
+    let mapSeq = 0;
     const builtins = {
       print: B('print', (args, kw) => {
         let sep = ' ', end = '\n';
@@ -659,6 +670,10 @@ Namespaces are one honking great idea -- let's do more of those!`;
       float: T('float', (args) => { argCount('float', args, 0, 1); return args.length ? toFloat(args[0]) : 0; }),
       str: T('str', (args) => { argCount('str', args, 0, 1); return args.length ? str(args[0]) : ''; }),
       bool: T('bool', (args) => { argCount('bool', args, 0, 1); return args.length ? truthy(args[0]) : false; }),
+      map: B('map', (args) => {
+        if (args.length < 2) throw err('TypeError', 'map() must have at least two arguments.');
+        return { __map: true, f: args[0], its: args.slice(1).map(iterate), i: 0, addr: (0x7f3a5c1b2e40 + 0x60 * mapSeq++).toString(16) };
+      }),
       list: T('list', (args) => { argCount('list', args, 0, 1); return args.length ? iterate(args[0]).slice() : []; }),
       tuple: T('tuple', (args) => { const a = args.length ? iterate(args[0]).slice() : []; a.__tuple = true; return a; }),
       type: B('type', (args) => {
@@ -711,8 +726,7 @@ Namespaces are one honking great idea -- let's do more of those!`;
       sorted: B('sorted', (args, kw) => {
         const a = iterate(args[0]).slice();
         a.sort((x, y) => compare(x, y));
-        if (kw.some(k => k.name === 'reverse' && truthy(k.v))) a.reverse();
-        return a;
+        return sortKw(a, kw, 'sorted');
       }),
       reversed: B('reversed', (args) => iterate(args[0]).slice().reverse()),
       ord: B('ord', (args) => BigInt(String(args[0]).codePointAt(0))),
@@ -820,8 +834,18 @@ Namespaces are one honking great idea -- let's do more of those!`;
       }
       throw err('TypeError', `'${typeName(obj)}' object is not subscriptable`);
     }
-    function callMethod(obj, name, args) {
+    /** sort()/sorted(): з іменованих аргументів — лише reverse. Невідомий аргумент — помилка, а не мовчки неправильний результат. */
+    function sortKw(a, kw, fname) {
+      for (const k of kw) {
+        if (k.name === 'key') throw new PyError('Unsupported', 'Аргумент key= цей навчальний тренажер ще не підтримує. Він є у справжньому Python — спробуй його в IDLE чи Thonny.', curLine);
+        if (k.name !== 'reverse') throw err('TypeError', `'${k.name}' is an invalid keyword argument for ${fname}()`);
+        if (truthy(k.v)) a.reverse();
+      }
+      return a;
+    }
+    function callMethod(obj, name, args, kw) {
       const t = typeName(obj);
+      if (kw.length && !(t === 'list' && name === 'sort')) throw err('TypeError', `${t}.${name}() takes no keyword arguments`);
       if (t === 'str') {
         const m = {
           upper: () => obj.toUpperCase(), lower: () => obj.toLowerCase(),
@@ -843,7 +867,7 @@ Namespaces are one honking great idea -- let's do more of those!`;
           pop: () => { if (!obj.length) throw err('IndexError', 'pop from empty list'); if (args.length) { let n = Number(toInt(args[0])); if (n < 0) n += obj.length; if (n < 0 || n >= obj.length) throw err('IndexError', 'pop index out of range'); return obj.splice(n, 1)[0]; } return obj.pop(); },
           insert: () => { let n = Number(toInt(args[0])); if (n < 0) n = Math.max(0, n + obj.length); obj.splice(n, 0, args[1]); return null; },
           remove: () => { const i = obj.findIndex(x => eq(x, args[0])); if (i < 0) throw err('ValueError', 'list.remove(x): x not in list'); obj.splice(i, 1); return null; },
-          sort: () => { obj.sort((x, y) => compare(x, y)); return null; },
+          sort: () => { obj.sort((x, y) => compare(x, y)); sortKw(obj, kw, 'sort'); return null; },
           reverse: () => { obj.reverse(); return null; },
           index: () => { const i = obj.findIndex(x => eq(x, args[0])); if (i < 0) throw err('ValueError', `${repr(args[0])} is not in list`); return BigInt(i); },
           count: () => BigInt(obj.filter(x => eq(x, args[0])).length),
@@ -854,6 +878,15 @@ Namespaces are one honking great idea -- let's do more of those!`;
       throw err('AttributeError', `'${t}' object has no attribute '${name}'`);
     }
 
+    function callValue(f, args, kwargs) {
+      if (f && f.__method) return callMethod(f.obj, f.name, args, kwargs);
+      if (f && (f.__builtin || f.call)) {
+        if (kwargs.length && f.__builtin !== 'print' && f.__builtin !== 'sorted') throw err('TypeError', `${f.__builtin || f.__type}() takes no keyword arguments`);
+        return (f.fn || f.call)(args, kwargs);
+      }
+      if (f && f.__type && !f.call) throw err('TypeError', `cannot create '${f.__type}' instances`);
+      throw err('TypeError', `'${typeName(f)}' object is not callable`);
+    }
     function evalE(n) {
       switch (n.k) {
         case 'const': return n.v;
@@ -930,16 +963,20 @@ Namespaces are one honking great idea -- let's do more of those!`;
         }
         case 'call': {
           const f = evalE(n.f);
-          const args = n.args.map(evalE);
+          const args = [];
+          for (const a of n.args) {
+            if (a.k !== 'star') { args.push(evalE(a)); continue; }
+            const v = evalE(a.e);
+            let items;
+            try { items = iterate(v); } catch (e) {
+              if (e.pyType !== 'TypeError') throw e;
+              throw err('TypeError', `${f && (f.__builtin || f.__type || f.name) || 'function'}() argument after * must be an iterable, not ${typeName(v)}`);
+            }
+            for (const x of items) args.push(x);
+          }
           const kwargs = n.kwargs.map(k => ({ name: k.name, v: evalE(k.v) }));
           curLine = n.line; tick();
-          if (f && f.__method) return callMethod(f.obj, f.name, args);
-          if (f && (f.__builtin || f.call)) {
-            if (kwargs.length && f.__builtin !== 'print' && f.__builtin !== 'sorted') throw err('TypeError', `${f.__builtin || f.__type}() takes no keyword arguments`);
-            return (f.fn || f.call)(args, kwargs);
-          }
-          if (f && f.__type && !f.call) throw err('TypeError', `cannot create '${f.__type}' instances`);
-          throw err('TypeError', `'${typeName(f)}' object is not callable`);
+          return callValue(f, args, kwargs);
         }
       }
       throw err('SystemError', 'unknown node ' + n.k);
