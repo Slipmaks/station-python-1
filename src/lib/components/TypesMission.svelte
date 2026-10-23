@@ -3,11 +3,13 @@
 	import type { TypeKey, TypesMission } from '#lib/types.js';
 	import { TYPE_INFO } from '#lib/lessons/pytypes.js';
 	import { typesStars } from '#lib/grade.js';
-	import { complete, logAttempt, ui } from '#lib/state.svelte.js';
+	import { complete, logAttempt, prog, save, ui } from '#lib/state.svelte.js';
 	import BriefHead from './BriefHead.svelte';
 
 	let { m }: { m: TypesMission } = $props();
 
+	// svelte-ignore state_referenced_locally — компонент перестворюється через {#key m.id}
+	const p = prog(m);
 	const TYPES = Object.keys(TYPE_INFO) as TypeKey[];
 	let items = $state.raw<[string, TypeKey][]>([]);
 	let k = $state(0), right = $state(0);
@@ -29,11 +31,12 @@
 		picked = t;
 		logAttempt({ missionId: m.id, step: k, answer: `${val} → ${t}` });
 		if (t === ans) right++;
+		else { p.mistakes++; save(); }
 		await tick(); nextBtn?.focus();
 	}
 	function next() {
 		if (!last) { k++; picked = null; return; }
-		if (right >= m.pass) complete(m, typesStars(right, m.count));
+		if (right >= m.pass) complete(m, typesStars(p.mistakes));
 		else failed = true;
 	}
 	// Цифри 1–4 вибирають тип, де б не був фокус (крім полів введення й модальних вікон).

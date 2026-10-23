@@ -67,12 +67,13 @@ export function grade(t: CodeTask, src: string) {
 
 /* ---------- зірки за відсік: ★★★ — бездоганно, ★ — мінімум за пройдений відсік ---------- */
 
-/** Задача з кодом: −1 за підказки, −1 за багато невдалих запусків; показаний розв’язок — лише ★. */
+/** Задача з кодом: −1 за підказки, −1 за багато невдалих запусків і ще −1 за перебір навмання; показаний розв’язок — лише ★. */
 export function codeStars(p: { hints: number[]; fails: number[]; sol: boolean }, multiStep: boolean) {
 	if (p.sol) return 1;
 	const fails = p.fails.reduce((a, b) => a + (b || 0), 0);
-	return Math.max(1, 3 - (p.hints.some(Boolean) ? 1 : 0) - (fails >= (multiStep ? 6 : 4) ? 1 : 0));
+	const [many, guessing] = multiStep ? [6, 15] : [4, 10];
+	return Math.max(1, 3 - (p.hints.some(Boolean) ? 1 : 0) - (fails >= many ? 1 : 0) - (fails >= guessing ? 1 : 0));
 }
 export const choiceStars = (mistakes: number) => (mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1);
-/** Сканер типів: зірки лише за пройдений сканер (right ≥ pass). */
-export const typesStars = (right: number, count: number) => (right === count ? 3 : right === count - 1 ? 2 : 1);
+/** Сканер типів: помилки за все проходження разом із невдалими прогонами — інакше його перепроходять, доки не вгадають. */
+export const typesStars = (mistakes: number) => (mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);

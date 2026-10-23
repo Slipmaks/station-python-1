@@ -22,13 +22,16 @@ export function buildReport(missionIds: string[], students: StudentRow[], progre
 			return { stars: st, attempts: a?.attempts ?? 0, fails, hints: a?.hints ?? 0, stuck: !st && fails >= STUCK_FAILS };
 		});
 		const lasts = stats.filter(a => a.studentId === s.id).map(a => a.last.getTime());
+		const total = cells.reduce((a, c) => a + (c?.stars ?? 0), 0);
 		return {
 			id: s.id,
 			name: s.name,
 			locked: !!s.lockedUntil && s.lockedUntil > now,
 			last: lasts.length ? new Date(Math.max(...lasts)) : null,
 			done: cells.filter(c => c?.stars).length,
-			stars: cells.reduce((a, c) => a + (c?.stars ?? 0), 0),
+			stars: total,
+			/** 12-бальна шкала: усі відсіки на ★★★ — 12; хоч одна зірка — щонайменше 1. */
+			grade: total ? Math.max(1, Math.round((total * 12) / (missionIds.length * 3))) : null,
 			cells
 		};
 	});

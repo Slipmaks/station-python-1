@@ -32,11 +32,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	else
 		await db.batch([
 			insert,
-			// найкращий результат і час першого проходження
-			db
-				.insert(progress)
-				.values({ studentId, missionId: m.id, stars })
-				.onConflictDoUpdate({ target: [progress.studentId, progress.missionId], set: { stars: sql`max(${progress.stars}, excluded.stars)` } })
+			// у залік — перше проходження; повторні лише для тренування, інакше вгадане перепроходять на ★★★
+			db.insert(progress).values({ studentId, missionId: m.id, stars }).onConflictDoNothing()
 		]);
 	return new Response(null, { status: 204 });
 };

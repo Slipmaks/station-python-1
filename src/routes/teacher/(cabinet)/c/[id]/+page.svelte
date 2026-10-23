@@ -71,6 +71,7 @@
 					{#each data.missions as m, k (m.id)}<th scope="col" title={m.name}><abbr title={m.name}>{k + 1}</abbr></th>{/each}
 					<th scope="col">Відсіків</th>
 					<th scope="col">★</th>
+					<th scope="col"><abbr title="Зірки в 12-бальній шкалі">Оцінка</abbr></th>
 					<th scope="col">Активність</th>
 				</tr>
 			</thead>
@@ -92,6 +93,7 @@
 						{/each}
 						<td>{r.done}/{data.missions.length}</td>
 						<td>{r.stars}</td>
+						<td>{r.grade ?? '—'}</td>
 						<td class="when">{ago(r.last, data.now)}</td>
 					</tr>
 				{/each}
@@ -100,13 +102,14 @@
 				<tr>
 					<th scope="row" class="who">Пройшли</th>
 					{#each data.totals as t, k (k)}<td>{t}</td>{/each}
-					<td colspan="3"></td>
+					<td colspan="4"></td>
 				</tr>
 			</tfoot>
 		</table>
 	</div>
 	<p class="legend">
 		<span class="sw done"></span> пройдено (зірки) · <span class="sw tried"></span> число — спроби, ще не пройдено ·
-		<span class="sw stuck"></span> {data.stuckFails}+ невдалих спроб — варто підійти. Натисніть на клітинку, щоб побачити код учня. Таблиця оновлюється кожні 20 секунд.
+		<span class="sw stuck"></span> {data.stuckFails}+ невдалих спроб — варто підійти. Оцінка — зірки в 12-бальній шкалі: усі відсіки на ★★★ — 12.
+		Натисніть на клітинку, щоб побачити код учня. Таблиця оновлюється кожні 20 секунд.
 	</p>
 {/if}

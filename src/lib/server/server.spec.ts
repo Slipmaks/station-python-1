@@ -91,6 +91,7 @@ describe('сервер сам перевіряє відповіді й раху�
 		expect(result(radio, [row(0, true)])).toBe(3);
 		expect(result(radio, [...Array(3).fill(row(0, false)), row(0, true)])).toBe(3);
 		expect(result(radio, [...Array(4).fill(row(0, false)), row(0, true)])).toBe(2);
+		expect(result(radio, [...Array(10).fill(row(0, false)), row(0, true)]), 'перебір навмання').toBe(1);
 		expect(result(radio, [row(0, false, 1), row(0, true, 1)])).toBe(2);
 		expect(result(radio, [row(0, false, 0, true), row(0, true, 0, true)])).toBe(1);
 		expect(result(radio, [row(0, false)])).toBeNull();
@@ -112,10 +113,11 @@ describe('сервер сам перевіряє відповіді й раху�
 		expect(result(archive, all.slice(-1))).toBeNull();
 		expect(result(archive, [...all, row(all.length - 1, false)])).toBeNull();
 	});
-	it('сканер: останній повний прохід, щонайменше pass правильних', () => {
+	it('сканер: останній повний прохід, щонайменше pass правильних; помилки попередніх прогонів рахуються', () => {
 		const run = (right: number) => Array.from({ length: scanner.count }, (_, k) => row(k, k < right));
 		expect([10, 9, 8, 7].map(r => result(scanner, run(r)))).toEqual([3, 2, 1, null]);
-		expect(result(scanner, [...run(3).slice(0, 4), ...run(10)])).toBe(3);
+		expect(result(scanner, [...run(3).slice(0, 4), ...run(10)]), 'кинутий прогін з однією помилкою').toBe(2);
+		expect(result(scanner, [...run(7), ...run(10)]), 'невдалий прогін, потім 10 з 10').toBe(1);
 		expect(result(scanner, run(10).slice(1))).toBeNull();
 		expect(result(scanner, Array(scanner.count).fill(row(0, true)))).toBeNull();
 	});
@@ -154,6 +156,13 @@ describe('таблиця результатів класу', () => {
 	it('підсумки рядка й колонок', () => {
 		expect(r.rows.map(x => [x.done, x.stars])).toEqual([[2, 4], [1, 2], [0, 0]]);
 		expect(r.totals).toEqual([2, 1, 0]);
+	});
+	it('оцінка за 12-бальною шкалою', () => {
+		expect(r.rows.map(x => x.grade)).toEqual([5, 3, null]);
+		const ids = Array.from({ length: 12 }, (_, k) => `m${k}`);
+		const one = (stars: number[]) => buildReport(ids, [{ id: 1, name: 'Оля', lockedUntil: null }], stars.map((st, k) => ({ studentId: 1, missionId: ids[k], stars: st })), [], now).rows[0].grade;
+		expect(one(Array(12).fill(3))).toBe(12);
+		expect(one([1]), 'хоч одна зірка — не нуль').toBe(1);
 	});
 	it('остання активність і блокування лише чинне', () => {
 		expect(r.rows.map(x => x.last?.getTime() ?? null)).toEqual([t(5).getTime(), t(2).getTime(), null]);

@@ -53,7 +53,7 @@ test('чесні розв’язки через API: зірки рахує се�
 	await attempt(page, { missionId: 'radio', step: 0, answer: radio.solution });
 	const done = await q(`select stars from attempts where student_id = ? and mission_id = 'radio' and stars is not null order by id`, [id]);
 	expect(done.map(r => r.stars), 'нове проходження рахується з нуля').toEqual([1, 3]);
-	expect((await stars(id)).radio, 'у progress — найкращий результат').toBe(3);
+	expect((await stars(id)).radio, 'у progress — перше проходження, повторне його не покращує').toBe(1);
 
 	const teacher = await person();
 	await teacherLogin(teacher, 'olena');
@@ -103,6 +103,14 @@ test('гра в браузері: зірки у вікні дорівнюють 
 		await page.click('.hint-btn');
 		await run(page, power.solution);
 		expect(await modalStars(page)).toBe(2);
+		await star('power').toBe(2);
+	});
+	await test.step('повторне проходження на ★★★ залік не змінює', async () => {
+		await page.goto('/m/power');
+		await run(page, power.solution);
+		expect(await modalStars(page)).toBe(3);
+		await expect(page.locator('.modal')).toContainText('У заліку лишається перше: ★★');
+		await expect(page.locator('.stars-total')).toHaveText('★ 6');
 		await star('power').toBe(2);
 	});
 	await test.step('після перезавантаження гра показує зірки сервера', async () => {

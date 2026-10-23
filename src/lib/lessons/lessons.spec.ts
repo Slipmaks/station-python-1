@@ -117,23 +117,27 @@ it('жорстко вписане значення не проходить те�
 	expect(g.verdict).toEqual({ kind: 'hardcoded', first: 'Марко', failed: 'Оля' });
 });
 
-describe('зірки — як в офлайн-версії', () => {
+describe('правила зірок', () => {
 	const p = (hints: number[], fails: number[], sol = false) => ({ hints, fails, sol });
-	it('задача з кодом', () => {
+	it('задача з кодом: пороги помилок — 4 і 10 (перебір навмання)', () => {
 		expect(codeStars(p([0], [0]), false)).toBe(3);
 		expect(codeStars(p([1], [0]), false)).toBe(2);
 		expect(codeStars(p([0], [3]), false)).toBe(3);
 		expect(codeStars(p([0], [4]), false)).toBe(2);
+		expect(codeStars(p([0], [9]), false)).toBe(2);
+		expect(codeStars(p([0], [10]), false)).toBe(1);
 		expect(codeStars(p([2], [9]), false)).toBe(1);
 		expect(codeStars(p([0], [0], true), false)).toBe(1);
 	});
-	it('ремонтний відсік: помилки сумуються по кроках, поріг — 6', () => {
+	it('ремонтний відсік: помилки сумуються по кроках, пороги — 6 і 15', () => {
 		expect(codeStars(p([0, 0, 0, 0], [2, 1, 1, 1]), true)).toBe(3);
 		expect(codeStars(p([0, 0, 0, 0], [2, 2, 1, 1]), true)).toBe(2);
 		expect(codeStars(p([0, 0, 1, 0], [0, 0, 0, 0]), true)).toBe(2);
+		expect(codeStars(p([0, 0, 0, 0], [4, 4, 4, 2]), true)).toBe(2);
+		expect(codeStars(p([0, 0, 0, 0], [4, 4, 4, 3]), true)).toBe(1);
 	});
-	it('вікторина й сканер', () => {
+	it('вікторина й сканер: за кількістю помилок', () => {
 		expect([0, 1, 2, 3].map(choiceStars)).toEqual([3, 2, 2, 1]);
-		expect([10, 9, 8].map(r => typesStars(r, 10))).toEqual([3, 2, 1]);
+		expect([0, 1, 2, 5].map(typesStars)).toEqual([3, 2, 1, 1]);
 	});
 });

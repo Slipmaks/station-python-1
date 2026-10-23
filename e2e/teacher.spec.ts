@@ -43,7 +43,8 @@ test('урок у класі: таблиця, сторінка учня, нов�
 		await expect(olyaCells.nth(3)).toHaveClass(/stuck/);
 		await expect(olyaCells.nth(12)).toHaveText('1/12');
 		await expect(olyaCells.nth(13)).toHaveText('3');
-		await expect(olyaCells.nth(14)).toHaveText('щойно');
+		await expect(olyaCells.nth(14), '3★ з 36 у 12-бальній шкалі').toHaveText('1');
+		await expect(olyaCells.nth(15)).toHaveText('щойно');
 		await expect(rows.filter({ hasText: 'Петро' })).toContainText('вхід заблоковано');
 		await expect(teacher.locator('tfoot td').first(), 'радіорубку пройшов 1').toHaveText('1');
 	});

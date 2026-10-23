@@ -62,7 +62,8 @@ export function prog(m: Mission): Prog {
 }
 
 /* ---------- модальні вікна й повідомлення ---------- */
-export type Modal = { kind: 'complete'; id: string; stars: number } | { kind: 'cert'; lesson: string } | null;
+/** kept — повторне проходження: зірки першого, які лишаються в заліку. */
+export type Modal = { kind: 'complete'; id: string; stars: number; kept?: number } | { kind: 'cert'; lesson: string } | null;
 export const ui = $state({ modal: null as Modal, toast: '' });
 /** Відсік, який щойно ввімкнувся: головний екран один раз програє анімацію. Навмисно не реактивне. */
 export const flash = { justLit: null as string | null };
@@ -73,10 +74,10 @@ export function toast(msg: string) { ui.toast = msg; clearTimeout(toastTimer); t
 /** Показати проходження одразу; на сервері його вже записала остання спроба — за тими ж правилами зірок. */
 export function complete(m: Mission, stars: number) {
 	const prev = S.done[m.id];
-	S.done[m.id] = { stars: Math.max(stars, prev?.stars ?? 0) };
+	S.done[m.id] = prev ?? { stars };
 	delete S.prog[m.id];
 	if ('steps' in m) S.step[m.id] = 0;
 	if (!prev) flash.justLit = m.id;
 	saveNow();
-	ui.modal = { kind: 'complete', id: m.id, stars };
+	ui.modal = { kind: 'complete', id: m.id, stars, kept: prev?.stars };
 }

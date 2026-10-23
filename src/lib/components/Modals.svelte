@@ -14,7 +14,7 @@
 
 <Modal>
 	{#if ui.modal?.kind === 'complete'}
-		{@const { id, stars: st } = ui.modal}
+		{@const { id, stars: st, kept } = ui.modal}
 		{@const l = lessonOf(id)!}
 		{@const ms = l.missions}
 		{@const i = ms.findIndex(x => x.id === id)}
@@ -24,7 +24,8 @@
 		<h2>Відсік «{m.name}» працює</h2>
 		<div class="big-stars" aria-label="{st} з 3 зірок">{@render stars(st)}</div>
 		<p style="color:var(--ink-soft)">
-			{st === 3 ? 'Бездоганно — без жодної підказки.' : st === 2 ? 'Чудово! Наступного разу спробуй без підказок.' : 'Відсік відновлено. Можеш повернутися сюди пізніше й пройти без підказки.'}
+			{#if kept}Це повторне проходження — для тренування. У заліку лишається перше: {'★'.repeat(kept)}.
+			{:else}{st === 3 ? 'Бездоганно — без жодної підказки.' : st === 2 ? 'Чудово! Наступного разу спробуй без підказок.' : 'Відсік відновлено. Наступного разу спробуй менше підказок і помилок.'}{/if}
 		</p>
 		<div class="learned"><b>Що ти вмієш тепер:</b> {m.learned}</div>
 		<div class="modal-actions">

@@ -49,7 +49,7 @@ export const sessions = sqliteTable('sessions', {
 	expiresAt: integer({ mode: 'timestamp_ms' }).notNull()
 });
 
-/** Пройдені відсіки: найкращий результат. */
+/** Пройдені відсіки: зірки першого проходження — повторні лише для тренування. */
 export const progress = sqliteTable(
 	'progress',
 	{

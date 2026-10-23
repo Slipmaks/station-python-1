@@ -27,8 +27,7 @@ export function result(m: Mission, rows: Row[]): number | null {
 		// сканер: останні count відповідей — один повний прохід 0…count−1
 		const run = rows.slice(-m.count);
 		if (run.length < m.count || run.some((r, k) => r.step !== k)) return null;
-		const right = run.filter(r => r.passed).length;
-		return right >= m.pass ? typesStars(right, m.count) : null;
+		return run.filter(r => r.passed).length >= m.pass ? typesStars(rows.filter(r => !r.passed).length) : null;
 	}
 	const n = m.kind === 'choice' ? m.items.length : 'steps' in m ? m.steps.length : 1;
 	const last = rows.at(-1);
