@@ -1,7 +1,8 @@
 import { redirect } from '@sveltejs/kit';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
-import { attempts, progress, sessions, students, workspaces } from '#lib/server/db/schema.js';
+import { attempts, progress, sessions, students } from '#lib/server/db/schema.js';
+import { deleteStudents } from '#lib/server/students.js';
 import { hashSecret, newPin } from '#lib/server/secrets.js';
 import { requireStudent } from '#lib/server/teacher.js';
 import { LESSONS, lessonNo } from '#lib/lessons/index.js';
@@ -55,16 +56,9 @@ export const actions: Actions = {
 		return { pin };
 	},
 
-	/** Учня й усі його дані — одним пакетом: або все, або нічого. */
 	delete: async ({ locals, params }) => {
 		const { cls, st } = await requireStudent(locals, params.id, params.sid);
-		await db.batch([
-			db.delete(attempts).where(eq(attempts.studentId, st.id)),
-			db.delete(progress).where(eq(progress.studentId, st.id)),
-			db.delete(workspaces).where(eq(workspaces.studentId, st.id)),
-			db.delete(sessions).where(eq(sessions.studentId, st.id)),
-			db.delete(students).where(eq(students.id, st.id))
-		]);
+		await deleteStudents([st.id]);
 		redirect(303, `/teacher/c/${cls.id}`);
 	}
 };

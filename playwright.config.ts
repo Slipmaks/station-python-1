@@ -21,7 +21,7 @@ export default defineConfig({
 	webServer: {
 		command: `rm -f e2e.db && drizzle-kit migrate && vite dev --port ${PORT} --strictPort`,
 		url: `http://localhost:${PORT}/login`,
-		env: { DATABASE_URL: 'file:e2e.db' },
+		env: { DATABASE_URL: 'file:e2e.db', DEMO_CLASS_CODE: 'DEMO23' },
 		// завжди свій сервер: інакше БД не буде свіжою
 		reuseExistingServer: false
 	}

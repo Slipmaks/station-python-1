@@ -55,6 +55,8 @@ Google Chrome (немає Chrome — `npx playwright install chromium` і при
    DATABASE_URL=libsql://… DATABASE_AUTH_TOKEN=… npm run teacher -- olena "Олена Петрівна"
    ```
 3. Vercel: імпортувати репозиторій, у Settings → Environment Variables задати `DATABASE_URL` і `DATABASE_AUTH_TOKEN`.
+4. Демо (необов’язково): створити в кабінеті клас для гостей і задати його код у `DEMO_CLASS_CODE`.
+   Тоді `/demo` одним кліком створює тимчасового учня `Гість-XXXX`; учні цього класу, старші за добу, видаляються при наступному вході гостя.
 
 Після зміни схеми БД (`src/lib/server/db/schema.ts`): `npm run db:generate`, потім `npm run db:migrate` — локально й для Turso.
 
