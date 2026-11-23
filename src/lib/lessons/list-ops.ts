@@ -1,14 +1,8 @@
-import { count, lastLine, outIs, stripStrings } from '../checks.js';
-import type { CheckCtx, Lesson, Mission } from '../types.js';
+import { count, lastLine, nums, outIs, pyFloat, stripStrings, tail } from '../checks.js';
+import type { Lesson, Mission } from '../types.js';
 
 /* Урок 3: опрацювання списків (презентація «Уроки 16–18», п. 3.2, практична робота № 4). Відсіки відкриваються в порядку цього масиву. */
 
-/** Як Python виводить дробове число: 9 → 9.0, 8.1 → 8.1. */
-const pyFloat = (x: number) => (Number.isInteger(x) ? x + '.0' : String(x));
-/** Числа з рядка введення. */
-const nums = (s: string) => s.trim().split(/\s+/).map(Number);
-/** Останні n непорожніх рядків виводу. */
-const tail = (c: CheckCtx, n: number) => c.out.split('\n').map(l => l.trim()).filter(Boolean).slice(-n).join('\n');
 /** Є хоча б n зрізів списку a: a[…:…]. */
 const slices = (src: string, n: number) => (stripStrings(src).match(/\ba\[[^\]\n]*:[^\]\n]*\]/g) || []).length >= n;
 

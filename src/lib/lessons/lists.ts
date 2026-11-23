@@ -1,10 +1,8 @@
-import { count, lastLine, outIs, stripStrings } from '../checks.js';
+import { count, lastLine, outIs, pyFloat, stripStrings } from '../checks.js';
 import type { Lesson, Mission } from '../types.js';
 
 /* Урок 2: одновимірні масиви, списки в Python (презентація «Уроки 14–15», п. 3.1). Відсіки відкриваються в порядку цього масиву. */
 
-/** Як Python виводить дробове число: 60 → 60.0, 2.5 → 2.5. */
-const pyFloat = (x: number) => (Number.isInteger(x) ? x + '.0' : String(x));
 /** Змінна циклу for використана як номер елемента a[…]. */
 const loopIndex = (src: string) => /\bfor\s+(\w+)\s+in\b[\s\S]*\ba\[\s*\1\s*\]/.test(stripStrings(src));
 /** Елемент a[змінна циклу] отримує нове значення. */
