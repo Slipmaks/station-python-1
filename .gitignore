@@ -30,3 +30,5 @@ vite.config.ts.timestamp-*
 
 # Claude Code: тимчасові копії репозиторію
 /.claude/worktrees/
+
+/presentations

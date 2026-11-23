@@ -1,9 +1,10 @@
 import type { Lesson } from '../types.js';
 import intro from './intro.js';
 import lists from './lists.js';
+import listOps from './list-ops.js';
 
 /** Усі уроки по порядку — учні бачать їх як «Урок 1», «Урок 2»… Новий урок — новий файл у цій теці й рядок тут. */
-export const LESSONS: Lesson[] = [intro, lists];
+export const LESSONS: Lesson[] = [intro, lists, listOps];
 
 const byId = new Map(LESSONS.flatMap(l => l.missions).map(m => [m.id, m]));
 const owner = new Map(LESSONS.flatMap(l => l.missions.map(m => [m.id, l] as const)));
